@@ -1,0 +1,21 @@
+apiVersion: 1
+
+datasources:
+  # Prometheus (existing - metrics)
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: false
+    editable: true
+
+  # OLAP Query API (JSON API)
+  - name: OLAP Analytics
+    type: marcusolsson-json-datasource
+    access: proxy
+    url: http://olap-worker:8004
+    isDefault: true
+    editable: true
+    jsonData:
+      tlsSkipVerify: true
+    version: 1
