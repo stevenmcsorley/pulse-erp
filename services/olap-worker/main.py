@@ -4,11 +4,13 @@ import signal
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.nats_client import nats_client
 from app.duckdb_client import duckdb_client
 from app.consumers.event_consumer import olap_consumer
+from app.routers import query
 
 
 # Global flag for graceful shutdown
@@ -49,11 +51,23 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="OLAP Worker",
-    description="NATS Event Consumer for DuckDB Analytics",
+    title="OLAP Query API",
+    description="NATS Event Consumer & DuckDB Query API for Real-time Analytics",
     version="1.0.0",
     lifespan=lifespan,
 )
+
+# Enable CORS for frontend access
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Configure appropriately for production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include query router
+app.include_router(query.router)
 
 
 @app.get("/health")
