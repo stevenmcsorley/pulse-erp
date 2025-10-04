@@ -1,7 +1,9 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 
-const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8001';
-const OLAP_API_URL = process.env.OLAP_API_URL || 'http://localhost:8004';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8011';
+const INVENTORY_API_URL = process.env.NEXT_PUBLIC_INVENTORY_API_URL || 'http://localhost:8012';
+const BILLING_API_URL = process.env.NEXT_PUBLIC_BILLING_API_URL || 'http://localhost:8013';
+const OLAP_API_URL = process.env.NEXT_PUBLIC_OLAP_API_URL || 'http://localhost:8014';
 
 // OLTP API Client (Orders, Inventory, Billing)
 export const apiClient: AxiosInstance = axios.create({
@@ -69,19 +71,33 @@ export const api = {
     update: (id: string, data: any) => apiClient.patch(`/orders/${id}`, data),
   },
 
-  // Inventory
-  inventory: {
-    list: () => apiClient.get('/inventory'),
-    create: (data: any) => apiClient.post('/inventory', data),
-    reserve: (sku: string, data: any) =>
-      apiClient.post(`/inventory/${sku}/reserve`, data),
+  // Products (using inventory API)
+  products: {
+    list: () => apiClient.get(`${INVENTORY_API_URL}/inventory`),
+    get: (sku: string) => apiClient.get(`${INVENTORY_API_URL}/inventory/${sku}`),
+    create: (data: any) => apiClient.post(`${INVENTORY_API_URL}/inventory`, data),
+    update: (sku: string, data: any) => apiClient.put(`${INVENTORY_API_URL}/inventory/${sku}`, data),
   },
 
-  // Billing
+  // Inventory
+  inventory: {
+    list: () => apiClient.get(`${INVENTORY_API_URL}/inventory`),
+    listProducts: () => apiClient.get(`${INVENTORY_API_URL}/inventory`),
+    get: (sku: string) => apiClient.get(`${INVENTORY_API_URL}/inventory/${sku}`),
+    getProduct: (sku: string) => apiClient.get(`${INVENTORY_API_URL}/inventory/${sku}`),
+    createProduct: (data: any) => apiClient.post(`${INVENTORY_API_URL}/inventory`, data),
+    update: (sku: string, data: any) => apiClient.put(`${INVENTORY_API_URL}/inventory/${sku}`, data),
+    updateProduct: (sku: string, data: any) => apiClient.put(`${INVENTORY_API_URL}/inventory/${sku}`, data),
+    reserve: (sku: string, data: any) => apiClient.post(`${INVENTORY_API_URL}/inventory/${sku}/reserve`, data),
+  },
+
+  // Billing/Invoices
   billing: {
-    listInvoices: () => apiClient.get('/billing/invoices'),
-    getInvoice: (id: string) => apiClient.get(`/billing/invoices/${id}`),
-    createInvoice: (data: any) => apiClient.post('/billing/invoices', data),
+    listInvoices: () => apiClient.get(`${BILLING_API_URL}/invoices`),
+    getInvoice: (id: string) => apiClient.get(`${BILLING_API_URL}/invoices/${id}`),
+    createInvoice: (data: any) => apiClient.post(`${BILLING_API_URL}/invoices`, data),
+    payInvoice: (id: string) => apiClient.post(`${BILLING_API_URL}/invoices/${id}/pay`),
+    markAsPaid: (id: string) => apiClient.post(`${BILLING_API_URL}/invoices/${id}/pay`),
   },
 };
 
@@ -90,25 +106,25 @@ export const olapApi = {
   // Sales
   sales: {
     hourly: (hours: number = 24) =>
-      olapClient.get(`/query/sales/hourly?hours=${hours}`),
+      olapClient.get(`${OLAP_API_URL}/sales/hourly?hours=${hours}`),
   },
 
   // Inventory
   inventory: {
-    lowStock: () => olapClient.get('/query/inventory/low-stock'),
+    lowStock: () => olapClient.get(`${OLAP_API_URL}/inventory/low-stock`),
     movement: (limit: number = 50) =>
-      olapClient.get(`/query/inventory/movement?limit=${limit}`),
+      olapClient.get(`${OLAP_API_URL}/inventory/movement?limit=${limit}`),
   },
 
   // AR
   ar: {
-    overdue: () => olapClient.get('/query/ar/overdue'),
+    overdue: () => olapClient.get(`${OLAP_API_URL}/ar/overdue`),
   },
 
   // Orders
   orders: {
     daily: (days: number = 30) =>
-      olapClient.get(`/query/orders/daily?days=${days}`),
+      olapClient.get(`${OLAP_API_URL}/orders/daily?days=${days}`),
   },
 };
 

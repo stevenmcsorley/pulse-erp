@@ -1,0 +1,30 @@
+version: '3.9'
+
+#
+# Pulse ERP - Port Override Configuration for Base Infrastructure
+# Adjusts ports to avoid conflicts with existing services on Raspberry Pi
+#
+
+services:
+  # Traefik dashboard: 8080 -> 8090
+  traefik:
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8090:8080"
+
+  # PostgreSQL: 5432 -> 5434
+  postgres:
+    ports:
+      - "5434:5432"
+
+  # Grafana: 3000 -> 3010
+  grafana:
+    ports:
+      - "3010:3000"
+
+  # MinIO: 9000-9001 -> 9010-9011
+  minio:
+    ports:
+      - "9010:9000"
+      - "9011:9001"

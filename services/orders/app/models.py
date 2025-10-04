@@ -40,7 +40,7 @@ class Order(Base):
         default=datetime.utcnow,
         onupdate=datetime.utcnow,
     )
-    metadata: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    order_metadata: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict, name="metadata")
 
     # Relationships
     items: Mapped[List["OrderItem"]] = relationship(

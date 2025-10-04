@@ -29,7 +29,7 @@ class Product(Base):
         default=datetime.utcnow,
         onupdate=datetime.utcnow,
     )
-    metadata: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    product_metadata: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict, name="metadata")
 
     # Relationship
     inventory_item: Mapped[Optional["InventoryItem"]] = relationship(

@@ -1,4 +1,5 @@
 """Orders API endpoints"""
+from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -17,6 +18,26 @@ from app.schemas import (
 )
 
 router = APIRouter()
+
+
+@router.get(
+    "",
+    response_model=List[OrderResponse],
+    summary="Get all orders",
+)
+async def list_orders(
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Retrieve all orders with their items.
+
+    Returns a list of all orders in the system.
+    """
+    result = await db.execute(
+        select(Order).options(selectinload(Order.items))
+    )
+    orders = result.scalars().all()
+    return orders
 
 
 @router.post(

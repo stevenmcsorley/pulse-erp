@@ -7,7 +7,7 @@ WORKDIR /app
 
 # Install dependencies based on package manager
 COPY package.json package-lock.json* ./
-RUN npm ci --only=production
+RUN npm ci
 
 # Stage 2: Builder
 FROM node:20-alpine AS builder
@@ -17,9 +17,19 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Accept build args for Next.js public env vars
+ARG NEXT_PUBLIC_API_BASE_URL
+ARG NEXT_PUBLIC_INVENTORY_API_URL
+ARG NEXT_PUBLIC_BILLING_API_URL
+ARG NEXT_PUBLIC_OLAP_API_URL
+
 # Set environment variables for build
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
+ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
+ENV NEXT_PUBLIC_INVENTORY_API_URL=$NEXT_PUBLIC_INVENTORY_API_URL
+ENV NEXT_PUBLIC_BILLING_API_URL=$NEXT_PUBLIC_BILLING_API_URL
+ENV NEXT_PUBLIC_OLAP_API_URL=$NEXT_PUBLIC_OLAP_API_URL
 
 # Build Next.js app
 RUN npm run build

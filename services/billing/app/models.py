@@ -39,7 +39,7 @@ class Invoice(Base):
         default=datetime.utcnow,
         onupdate=datetime.utcnow,
     )
-    metadata: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    invoice_metadata: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict, name="metadata")
 
     __table_args__ = (
         CheckConstraint(

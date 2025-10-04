@@ -26,6 +26,17 @@ class DuckDBClient:
 
     def _initialize_schema(self):
         """Create OLAP tables if they don't exist"""
+        # Create sequences first (before tables that use them)
+        self.conn.execute("""
+            CREATE SEQUENCE IF NOT EXISTS order_events_seq START 1
+        """)
+        self.conn.execute("""
+            CREATE SEQUENCE IF NOT EXISTS invoice_events_seq START 1
+        """)
+        self.conn.execute("""
+            CREATE SEQUENCE IF NOT EXISTS stock_events_seq START 1
+        """)
+
         # Sales by hour aggregate
         self.conn.execute("""
             CREATE TABLE IF NOT EXISTS sales_by_hour (
@@ -79,11 +90,6 @@ class DuckDBClient:
             )
         """)
 
-        # Create sequence for order_events
-        self.conn.execute("""
-            CREATE SEQUENCE IF NOT EXISTS order_events_seq START 1
-        """)
-
         # Invoice events log
         self.conn.execute("""
             CREATE TABLE IF NOT EXISTS invoice_events (
@@ -99,10 +105,6 @@ class DuckDBClient:
             )
         """)
 
-        self.conn.execute("""
-            CREATE SEQUENCE IF NOT EXISTS invoice_events_seq START 1
-        """)
-
         # Stock events log
         self.conn.execute("""
             CREATE TABLE IF NOT EXISTS stock_events (
@@ -114,10 +116,6 @@ class DuckDBClient:
                 event_timestamp TIMESTAMP NOT NULL,
                 processed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
-        """)
-
-        self.conn.execute("""
-            CREATE SEQUENCE IF NOT EXISTS stock_events_seq START 1
         """)
 
         print("DuckDB schema initialized")

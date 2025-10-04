@@ -18,18 +18,15 @@ services:
       dockerfile: Dockerfile
       platforms:
         - linux/arm64
+      args:
+        NEXT_PUBLIC_API_BASE_URL: http://${PI_IP:-192.168.1.199}:8011
+        NEXT_PUBLIC_INVENTORY_API_URL: http://${PI_IP:-192.168.1.199}:8012
+        NEXT_PUBLIC_BILLING_API_URL: http://${PI_IP:-192.168.1.199}:8013
+        NEXT_PUBLIC_OLAP_API_URL: http://${PI_IP:-192.168.1.199}:8014
     container_name: pulse-frontend
     restart: unless-stopped
     environment:
       NODE_ENV: production
-      # API endpoints (internal container names)
-      API_BASE_URL: http://orders:8001
-      OLAP_API_URL: http://olap-worker:8004
-      GRAFANA_URL: http://grafana:3000
-      # Public URLs for client-side (via Traefik)
-      NEXT_PUBLIC_API_BASE_URL: https://api.${DOMAIN:-localhost}
-      NEXT_PUBLIC_OLAP_API_URL: https://api.${DOMAIN:-localhost}/olap
-      NEXT_PUBLIC_GRAFANA_URL: https://grafana.${DOMAIN:-localhost}
     ports:
       - "3001:3000"
     healthcheck:
