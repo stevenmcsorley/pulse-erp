@@ -1,0 +1,248 @@
+Project: ERP + BI Hybrid — Real-time ERP with integrated Business Intelligence
+One-line: A modular, self-hosted ERP (accounting, inventory, sales, HR) tightly integrated with a real-time BI layer (streaming ingest, OLAP queries, dashboards), designed to run as Dockerized microservices and demonstrable on modest hardware (Raspberry Pi 5 for demo, optional SSD).
+
+---
+
+# 1 — High-level ASCII architecture
+
+```
+                  Users (web/browser, mobile)
+                            │
+                      [ Traefik / Caddy ]
+                            │
+        -----------------------------------------------------
+        │                       │                         │
+  Frontend UI (Next.js)   Auth Service (Keycloak)   API Gateway (FastAPI/Go)
+        │                       │                         │
+        └──────────────┬────────┴──────────┬──────────────┘
+                       │                   │
+             ┌─────────▼────────┐ ┌────────▼─────────┐
+             │   ERP Services   │ │   BI & Ingest    │
+             │ (microservices)  │ │  (stream & OLAP)  │
+             └─────────┬────────┘ └────────┬─────────┘
+      ┌────────┬────────┬────────┐     ┌─────▼─────┐
+      │ Orders │  HR    │Billing │     │ Ingest /  │
+      │Inventory│Payroll│Accounting│   │ Streamer  │
+      └────────┴────────┴────────┘     └─────┬─────┘
+                 │                           │
+            Postgres (service DB)      Kafka / NATS (events)
+                 │                           │
+         CDC / Debezium (optional)   Stream consumer ──► OLAP
+                                           │            (DuckDB/ClickHouse)
+                                           ▼
+                                      Analytical Store
+                                   (DuckDB local files,
+                                    or ClickHouse / Timescale)
+                                           │
+                                        Grafana / Superset
+                                           │
+                                       Alerts / Exports
+```
+
+---
+
+# 2 — Core components & recommended technologies
+
+(choices biased toward open-source, lightweight, Docker-friendly)
+
+* **Ingress / TLS / routing:** Traefik (or Caddy if you want zero-config TLS)
+* **Auth / SSO:** Keycloak (or Ory Kratos for lighter installs)
+* **Frontend UI:** Next.js + Tailwind — single app that hosts ERP UI and BI dashboards embed
+* **API Gateway:** FastAPI (Python) or Go (Gin/Fiber) — handles routing, service discovery, rate-limiting
+* **ERP microservices (domain services):**
+
+  * Orders Service — manage orders, statuses
+  * Inventory Service — stock, reservations
+  * Billing / Accounting Service — invoices, payments, ledgers
+  * HR/Payroll Service — employees, payroll runs
+  * Each: small service (FastAPI or NestJS/TypeScript), talks via REST/gRPC and emits domain events
+* **Database (OLTP):** PostgreSQL (primary DB per service, or single Postgres with schemas for MVP)
+* **Message Bus / Eventing:** Apache Kafka or lightweight NATS JetStream (use NATS for Pi friendliness)
+* **CDC (optional for real-time analytics):** Debezium + Kafka Connect to stream DB changes
+* **Stream processing / materialization:** ksqlDB or simple stream consumers (Python/Go workers) that write to OLAP store
+* **Analytical store (OLAP):**
+
+  * Lightweight: DuckDB (queryable files), or
+  * More production: ClickHouse (but heavier); Timescale for time-series components
+* **BI / Dashboards:** Grafana + Grafana’s Explore / Superset for ad-hoc reports
+* **Object storage:** MinIO (S3-compatible) for attachments, invoices, exports
+* **Queue / Background jobs:** Redis + RQ / Celery or BullMQ
+* **CI / Build:** BuildKit + local registry; Git (Gitea) + Woodpecker (or GitHub Actions)
+* **Monitoring / Logging:** Prometheus + Grafana, Loki for logs, OpenTelemetry tracing (Jaeger)
+* **Backup:** pg_dump / WAL archiving to restic / rclone
+
+---
+
+# 3 — Data flow (real-time analytics)
+
+1. ERP services write to Postgres (OLTP).
+2. Each service also **emits events** to NATS/Kafka when important domain events occur (invoice_created, stock_changed, payroll_run).
+3. Stream consumers subscribe to events, **materialize** aggregates and denormalized tables into the OLAP store (DuckDB or ClickHouse). For strong consistency, optionally use Debezium CDC to capture Postgres WAL and push to Kafka → consumers build OLAP tables.
+4. BI dashboards query OLAP store for fast analytical queries; dashboards refresh live via websockets or polling.
+5. Alerts: Grafana alerts trigger via webhook / email when thresholds are reached (low stock, failed payroll).
+
+---
+
+# 4 — Minimal MVP feature set (demo-ready)
+
+* User auth + role model (admin, accountant, warehouse clerk).
+* Orders: create, update, view history.
+* Inventory: product catalog, stock counts, basic reservation on order.
+* Billing/Accounting: create invoice, mark paid, basic ledger entries.
+* HR: employee list, basic payroll run (simulate).
+* Real-time dashboard:
+
+  * Orders per hour, revenue, outstanding invoices.
+  * Stock levels & low-stock alerts.
+  * Cashflow snapshot & simple P&L (drilldown to invoices).
+* End-to-end flow: Create order → reserve stock → generate invoice → mark payment → dashboard updates in <2s.
+* Backup & restore demo: restore a recent snapshot to show data recovery.
+
+---
+
+# 5 — Docker deployment strategy (compose + separation)
+
+* Start with **Docker Compose** for Pi demo. Produce modular compose files:
+
+  * `docker-compose.base.yml` for infra (postgres, minio, nats, prometheus, grafana, traefik)
+  * `docker-compose.erp.yml` for ERP services
+  * `docker-compose.bi.yml` for OLAP + streamers + dashboards
+* Use **arm64** builds for all images (buildx). Use manifest or arm64-only tags for Pi.
+* Volumes: put `pgdata`, `minio`, and `olap_data` on external SSD if available; otherwise on SD with `noatime`.
+* Limits: set memory limits on heavier services (OLAP consumer, ClickHouse) to keep system stable.
+
+---
+
+# 6 — Example minimal docker-compose snippets (conceptual)
+
+```yaml
+# docker-compose.base.yml (snip)
+services:
+  traefik:
+    image: traefik:v2.11
+    volumes: ["/var/run/docker.sock:/var/run/docker.sock:ro"]
+    ports: ["80:80","443:443"]
+  postgres:
+    image: postgres:15-alpine
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    env_file: .env
+  nats:
+    image: nats:2-alpine
+    ports: ["4222:4222"]
+  minio:
+    image: minio/minio:RELEASE.202x
+    command: server /data
+    volumes: ["minio_data:/data"]
+volumes:
+  pgdata:
+  minio_data:
+```
+
+```yaml
+# docker-compose.erp.yml (snip)
+services:
+  orders:
+    image: myorg/orders:arm64
+    env_file: .env
+    depends_on: [postgres, nats]
+  inventory:
+    image: myorg/inventory:arm64
+    depends_on: [postgres, nats]
+  billing:
+    image: myorg/billing:arm64
+    depends_on: [postgres, nats, minio]
+```
+
+```yaml
+# docker-compose.bi.yml (snip)
+services:
+  olap-worker:
+    image: myorg/olap-worker:arm64
+    depends_on: [nats, postgres]
+    env_file: .env
+  duckdb-store:
+    image: duckdb/duckdb:latest # or run worker that writes .parquet/.duckdb files
+    volumes: ["olap_data:/olap"]
+  grafana:
+    image: grafana/grafana:arm64
+    depends_on: [duckdb-store]
+volumes:
+  olap_data:
+```
+
+---
+
+# 7 — Data model (very simplified)
+
+* `orders` (id, customer_id, items_json, total_amount, status, created_at)
+* `inventory_items` (sku, name, qty_on_hand, reorder_point)
+* `invoices` (id, order_id, status, due_date, amount)
+* `ledger_entries` (id, account, debit, credit, ref_id, timestamp)
+* `employees` (id, name, role, salary, payroll_meta)
+* OLAP tables: `sales_by_hour`, `stock_velocity`, `accounts_receivable_ageing`
+
+---
+
+# 8 — Observability & reliability
+
+* **Metrics:** Prometheus (exporter per service) + Grafana dashboards.
+* **Logs:** Loki + Promtail or ELK if you need more.
+* **Tracing:** OpenTelemetry -> Jaeger for distributed traces of critical flows (order → invoice → payment).
+* **Backups:** nightly `pg_dump`, OLAP store snapshots, MinIO snapshot. Use `rclone` to push to remote cloud or NAS.
+
+---
+
+# 9 — Security & multi-tenant concerns
+
+* TLS everywhere; use Traefik/Caddy for automatic certs.
+* Use Keycloak for OAuth2 / RBAC.
+* Secrets: environment variables via a secrets store (HashiCorp Vault or Docker secrets).
+* Auditing: store a write-ahead audit log (append-only) for critical actions (invoices changed, payments issued).
+
+---
+
+# 10 — Pi-specific feasibility & tuning
+
+* **Feasible:** A trimmed MVP (single Postgres instance, NATS, small OLAP via DuckDB) runs fine on Pi 5.
+* **Heavier components** (ClickHouse, Kafka, Debezium) are resource hungry; prefer **NATS + lightweight stream workers** and **DuckDB** for Pi demo.
+* **Memory plan:** reserve ~3–4GB for system and Postgres/OLAP; limit other services to 256–1024MB. Use zram.
+* **Storage:** prioritize moving DB and OLAP files to external SSD. If SD only, set `noatime`, log rotation, and frequent pruning of heavy artifacts.
+* **Concurrency:** limit worker parallelism (1–2 concurrent OLAP ingest jobs at most).
+
+---
+
+# 11 — MVP timeline (practical plan for demo)
+
+(Assumes you work iteratively; times are approximate)
+
+* **Day 0:** Provision Pi + OS + Docker + external SSD. Install Traefik, Postgres, NATS, MinIO.
+* **Day 1:** Scaffold API gateway + one ERP service (Orders). Basic UI to create orders.
+* **Day 2:** Add Inventory service and connect event emission to NATS.
+* **Day 3:** Add Billing service, invoice generation, and MinIO attachment storage.
+* **Day 4:** Build OLAP worker that subscribes to NATS and writes DuckDB aggregates. Add a simple Grafana dashboard.
+* **Day 5:** Polish UI, auth, and demo flow: create order → reserve stock → generate invoice → mark paid → dashboard updates live.
+* **Day 6:** Add backups, lightweight monitoring, and produce demo script.
+* **Day 7:** Dress rehearsal for interview/demo, tweak resource limits and logging.
+
+---
+
+# 12 — Demo script (5–7 minutes)
+
+1. Show the Pi host info and Traefik dashboard (HTTPS live).
+2. Open the ERP UI as Admin; create a sample product and stock.
+3. Create a customer; create an order (or push via API).
+4. Show Inventory service reserved stock updated instantly.
+5. Generate invoice → mark as paid.
+6. Switch to Grafana: show sales spike, cashflow update, low-stock alert firing.
+7. Trigger a simulated failure (e.g., payment processor unreachable) → show error dashboard and how to reopen/repair.
+8. Show backup restore (restore yesterday’s pg_dump) to demonstrate resilience.
+
+---
+
+# 13 — Next immediate actions I can take for you (pick one)
+
+* Scaffold a **repo skeleton** with Docker Compose files (base + ERP + BI) tuned for Pi (arm64) so you can `git clone` and `docker compose up`.
+* Produce a **detailed Docker Compose** with environment example `.env`, secrets guidance, and buildx CI job for arm64 images.
+* Scaffold **one complete flow** (Orders + Inventory + OLAP worker + Grafana dashboard) with sample data and a 1-page demo script.
+
+Tell me which next step you want me to do *right now* and I’ll scaffold it instantly (I’ll produce the files and commands you can copy/paste).

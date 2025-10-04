@@ -1,0 +1,83 @@
+# Prometheus Configuration for Pulse ERP
+# Scrape targets for all services
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'pulse-erp'
+    environment: 'production'
+
+# Alertmanager configuration (optional - Sprint 2)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets: ['alertmanager:9093']
+
+# Rule files (optional - Sprint 2)
+# rule_files:
+#   - '/etc/prometheus/alerts.yml'
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # NATS JetStream monitoring
+  - job_name: 'nats'
+    static_configs:
+      - targets: ['nats:8222']
+    metrics_path: '/metrics'
+
+  # PostgreSQL exporter (to be added in Sprint 2)
+  # - job_name: 'postgres'
+  #   static_configs:
+  #     - targets: ['postgres-exporter:9187']
+
+  # MinIO metrics
+  - job_name: 'minio'
+    metrics_path: /minio/v2/metrics/cluster
+    static_configs:
+      - targets: ['minio:9000']
+
+  # Traefik metrics
+  - job_name: 'traefik'
+    static_configs:
+      - targets: ['traefik:8080']
+    metrics_path: '/metrics'
+
+  # Orders Service
+  - job_name: 'orders-service'
+    static_configs:
+      - targets: ['orders:8001']
+    metrics_path: '/metrics'
+
+  # Inventory Service
+  - job_name: 'inventory-service'
+    static_configs:
+      - targets: ['inventory:8002']
+    metrics_path: '/metrics'
+
+  # Billing Service
+  - job_name: 'billing-service'
+    static_configs:
+      - targets: ['billing:8003']
+    metrics_path: '/metrics'
+
+  # OLAP Query API
+  - job_name: 'olap-query-api'
+    static_configs:
+      - targets: ['olap-query-api:8004']
+    metrics_path: '/metrics'
+
+  # Frontend (Next.js) - optional
+  # - job_name: 'frontend'
+  #   static_configs:
+  #     - targets: ['frontend:3000']
+  #   metrics_path: '/api/metrics'
+
+  # System metrics (node-exporter) - to be added
+  # - job_name: 'node'
+  #   static_configs:
+  #     - targets: ['node-exporter:9100']

@@ -1,0 +1,1645 @@
+{
+  "name": "ERP + BI Hybrid MVP - Raspberry Pi 5",
+  "desc": "Modular ERP with real-time BI - Docker-first, arm64, demo-ready on Pi 5",
+  "lists": [
+    {
+      "id": "L01",
+      "name": "🎯 Epics / Roadmap",
+      "pos": 1
+    },
+    {
+      "id": "L02",
+      "name": "📋 Backlog - Refined",
+      "pos": 2
+    },
+    {
+      "id": "L03",
+      "name": "🚀 Sprint 1 — MVP (v0.1 Demo)",
+      "pos": 3
+    },
+    {
+      "id": "L04",
+      "name": "✨ Sprint 2 — Polish & Infra",
+      "pos": 4
+    },
+    {
+      "id": "L05",
+      "name": "🔧 In Progress",
+      "pos": 5
+    },
+    {
+      "id": "L06",
+      "name": "👀 Review / QA",
+      "pos": 6
+    },
+    {
+      "id": "L07",
+      "name": "✅ Done",
+      "pos": 7
+    },
+    {
+      "id": "L08",
+      "name": "🚫 Blocked / Waiting",
+      "pos": 8
+    },
+    {
+      "id": "L09",
+      "name": "📦 Releases / Milestones",
+      "pos": 9
+    },
+    {
+      "id": "L10",
+      "name": "📚 Docs / Onboarding",
+      "pos": 10
+    }
+  ],
+  "cards": [
+    {
+      "id": "E01",
+      "idList": "L01",
+      "name": "EPIC: Infrastructure Foundation (Pi + Docker)",
+      "desc": "**Epic Goal:** Provision Pi 5, configure Docker/Compose, set up base infrastructure (Postgres, NATS, MinIO, Traefik, monitoring).\n\n**Milestone:** Week 1, Days 0-1\n**Priority:** P0 - Critical path\n**Target:** Base compose stack running on Pi with external SSD for data volumes\n\n**Child Cards:** C01, C02, C03, C04, C05, C06, C07\n\n**Success Criteria:**\n- All base services healthy and accessible via HTTPS\n- Prometheus scraping all targets\n- Postgres accepting connections on internal network\n- NATS JetStream enabled and accepting messages\n- MinIO S3 API responding",
+      "labels": ["infra", "P0"],
+      "pos": 1
+    },
+    {
+      "id": "E02",
+      "idList": "L01",
+      "name": "EPIC: Orders Service (Core OLTP + Events)",
+      "desc": "**Epic Goal:** Implement Orders microservice with REST API, Postgres persistence, NATS event emission.\n\n**Milestone:** Week 1, Days 1-2\n**Priority:** P0 - MVP critical\n**Target:** Complete order lifecycle API with event-driven architecture\n\n**Child Cards:** C08, C09, C10, C11, C12\n\n**Success Criteria:**\n- POST /orders creates order and emits event\n- GET /orders/{id} retrieves order with items\n- PATCH /orders/{id} updates status\n- All endpoints covered by integration tests\n- Service exposes /healthz and /metrics",
+      "labels": ["api", "backend", "P0"],
+      "pos": 2
+    },
+    {
+      "id": "E03",
+      "idList": "L01",
+      "name": "EPIC: Inventory Service (Stock Management + Reservations)",
+      "desc": "**Epic Goal:** Implement Inventory service with product catalog, stock tracking, reservation logic, event consumers.\n\n**Milestone:** Week 1, Day 2\n**Priority:** P0 - MVP critical\n**Target:** Automated stock reservation on order creation\n\n**Child Cards:** C13, C14, C15, C16\n\n**Success Criteria:**\n- Product CRUD endpoints functional\n- Stock reservation atomic and event-driven\n- Low-stock detection and alerts\n- Integration with Orders via NATS events",
+      "labels": ["api", "backend", "P0"],
+      "pos": 3
+    },
+    {
+      "id": "E04",
+      "idList": "L01",
+      "name": "EPIC: Billing Service (Invoices + Payments + Ledger)",
+      "desc": "**Epic Goal:** Implement Billing service for invoice generation, payment processing, ledger entries.\n\n**Milestone:** Week 1, Day 3\n**Priority:** P0 - MVP critical\n**Target:** Automated invoice creation and payment flow\n\n**Child Cards:** C17, C18, C19, C20\n\n**Success Criteria:**\n- Invoice auto-created on order_created event\n- Payment marking updates ledger\n- PDF invoice generation to MinIO\n- Events emitted for invoice_created, payment_received",
+      "labels": ["api", "backend", "P0"],
+      "pos": 4
+    },
+    {
+      "id": "E05",
+      "idList": "L01",
+      "name": "EPIC: OLAP & BI Pipeline (Streaming + Analytics)",
+      "desc": "**Epic Goal:** Build stream consumers, DuckDB materialization, Grafana dashboards for real-time analytics.\n\n**Milestone:** Week 1, Days 4-5\n**Priority:** P0 - Demo critical\n**Target:** <2s latency from order to dashboard update\n\n**Child Cards:** C21, C22, C23, C24, C25\n\n**Success Criteria:**\n- NATS consumers materialize to DuckDB\n- sales_by_hour, stock_snapshot, ar_ageing tables updated\n- Grafana dashboards show live data\n- Dashboard queries return <500ms",
+      "labels": ["bi", "data", "P0"],
+      "pos": 5
+    },
+    {
+      "id": "E06",
+      "idList": "L01",
+      "name": "EPIC: Frontend UI (Next.js + Tailwind)",
+      "desc": "**Epic Goal:** Build responsive ERP UI with order management, inventory, billing views, embedded Grafana dashboards.\n\n**Milestone:** Week 1-2, Days 3-6\n**Priority:** P0 - Demo UX\n**Target:** Professional UI for demo flow\n\n**Child Cards:** C26, C27, C28, C29, C30, C31\n\n**Success Criteria:**\n- Order creation form functional\n- Inventory management UI\n- Invoice viewing and payment\n- Grafana dashboard embed\n- Mobile-responsive design",
+      "labels": ["frontend", "P0"],
+      "pos": 6
+    },
+    {
+      "id": "E07",
+      "idList": "L01",
+      "name": "EPIC: Auth & Security (Keycloak + JWT)",
+      "desc": "**Epic Goal:** Implement OAuth2/JWT authentication, role-based access control, secrets management.\n\n**Milestone:** Week 2, Days 1-2\n**Priority:** P1 - Security essential\n**Target:** Secure multi-user demo environment\n\n**Child Cards:** C32, C33, C34, C35\n\n**Success Criteria:**\n- Keycloak configured with realms and roles\n- API Gateway validates JWT tokens\n- RBAC enforced (admin, accountant, clerk)\n- Secrets in Docker secrets or .env.vault",
+      "labels": ["infra", "security", "P1"],
+      "pos": 7
+    },
+    {
+      "id": "E08",
+      "idList": "L01",
+      "name": "EPIC: CI/CD & DevOps (Build + Deploy + Registry)",
+      "desc": "**Epic Goal:** Multi-arch build pipeline, local registry, deployment automation, backup/restore scripts.\n\n**Milestone:** Week 2, Days 3-4\n**Priority:** P1 - Operational readiness\n**Target:** Automated builds and deployments\n\n**Child Cards:** C36, C37, C38, C39, C40\n\n**Success Criteria:**\n- GitHub Actions builds arm64 images\n- Local registry hosts all service images\n- docker-compose up deploys full stack\n- Backup/restore scripts tested",
+      "labels": ["ci/cd", "devops", "P1"],
+      "pos": 8
+    },
+    {
+      "id": "E09",
+      "idList": "L01",
+      "name": "EPIC: Monitoring & Observability (Prometheus + Grafana + Logs)",
+      "desc": "**Epic Goal:** Metrics collection, dashboards, alerting, distributed tracing, log aggregation.\n\n**Milestone:** Week 2, Day 5\n**Priority:** P1 - Operational visibility\n**Target:** Full observability stack\n\n**Child Cards:** C41, C42, C43, C44\n\n**Success Criteria:**\n- All services expose /metrics\n- Prometheus scraping and storing metrics\n- Alert rules for low stock, failed payments\n- Grafana system + business dashboards",
+      "labels": ["infra", "monitoring", "P1"],
+      "pos": 9
+    },
+    {
+      "id": "E10",
+      "idList": "L01",
+      "name": "EPIC: Testing & QA (Unit + Integration + E2E)",
+      "desc": "**Epic Goal:** Comprehensive test coverage, automated E2E tests, load testing for Pi constraints.\n\n**Milestone:** Week 2, Days 6-7\n**Priority:** P1 - Quality assurance\n**Target:** 80%+ coverage, automated smoke tests\n\n**Child Cards:** C45, C46, C47, C48\n\n**Success Criteria:**\n- Unit tests for all service endpoints\n- Integration tests for event flows\n- Playwright E2E for demo script\n- Load test results documented",
+      "labels": ["qa", "P1"],
+      "pos": 10
+    },
+    {
+      "id": "E11",
+      "idList": "L01",
+      "name": "EPIC: Demo Preparation & Documentation",
+      "desc": "**Epic Goal:** Seed data scripts, demo rehearsal, documentation, presentation materials.\n\n**Milestone:** Week 2, Day 7\n**Priority:** P0 - Demo readiness\n**Target:** Polished 7-minute demo\n\n**Child Cards:** C49, C50, C51, C52\n\n**Success Criteria:**\n- Demo script memorized and timed\n- Seed data loads <30s\n- All demo flows rehearsed\n- README and architecture docs complete",
+      "labels": ["docs", "qa", "P0"],
+      "pos": 11
+    },
+    {
+      "id": "C01",
+      "idList": "L03",
+      "name": "Provision Pi 5 + OS + Docker Setup",
+      "desc": "**Summary:** Install Raspberry Pi OS, configure Docker, mount external SSD, set up swap/zram for memory optimization.\n\n**References:** PRD §10 (Pi tuning), SAD §5 (deployment topology)\n\n**Deliverables:**\n- Pi 5 running Raspberry Pi OS (64-bit)\n- Docker 24+ and Docker Compose v2 installed\n- External SSD mounted at /mnt/ssd with proper permissions\n- zram configured for 4GB compressed swap\n- /boot/config.txt optimized (gpu_mem, arm_64bit)\n\n**Commands:**\n```bash\nsudo apt update && sudo apt install -y docker.io docker-compose-plugin\nsudo usermod -aG docker $USER\nsudo mkdir -p /mnt/ssd\nsudo mount /dev/sda1 /mnt/ssd\nsudo sh -c 'echo \"/dev/sda1 /mnt/ssd ext4 defaults,noatime 0 2\" >> /etc/fstab'\nsudo apt install -y zram-tools\n```",
+      "labels": ["infra", "P0", "devops"],
+      "pos": 1,
+      "checklists": [
+        {
+          "name": "Implementation",
+          "checkItems": [
+            "Flash Raspberry Pi OS 64-bit to SD card",
+            "Boot Pi and run initial setup (user, network, SSH)",
+            "Install Docker and Docker Compose plugin",
+            "Format and mount external SSD to /mnt/ssd",
+            "Configure zram for memory optimization",
+            "Set up /boot/config.txt for performance (gpu_mem=256, arm_boost=1)",
+            "Verify Docker hello-world runs successfully"
+          ]
+        },
+        {
+          "name": "Testing",
+          "checkItems": [
+            "docker --version returns 24+",
+            "docker compose version returns v2+",
+            "SSD write test: dd if=/dev/zero of=/mnt/ssd/test bs=1M count=1024",
+            "zramctl shows zram device active",
+            "Non-root user can run docker ps"
+          ]
+        },
+        {
+          "name": "Security",
+          "checkItems": [
+            "SSH key-only authentication enabled",
+            "UFW firewall configured (allow 80,443,22)",
+            "Non-root Docker socket permissions verified"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "Docker daemon running and accessible by non-root user",
+        "External SSD mounted with noatime flag at /mnt/ssd",
+        "zram providing 4GB compressed swap",
+        "docker compose --version shows v2.x",
+        "System uptime stable >1 hour under idle load"
+      ],
+      "estimate": "3pt",
+      "branch": "infra/pi-provision",
+      "pr_title": "chore(infra): provision Pi 5 with Docker and SSD",
+      "assignees": ["@devops"],
+      "reviewers": ["@lead"],
+      "dependencies": []
+    },
+    {
+      "id": "C02",
+      "idList": "L03",
+      "name": "Create Base Docker Compose (Postgres, NATS, MinIO, Traefik)",
+      "desc": "**Summary:** Build docker-compose.base.yml with core infrastructure services tuned for arm64 and Pi constraints.\n\n**References:** PRD §6 (compose snippets), SAD §3 (components)\n\n**Deliverables:**\n- docker-compose.base.yml with all base services\n- .env.example with required variables\n- Volumes configured on external SSD\n- Traefik configured for HTTPS with Let's Encrypt (or self-signed for local)\n- Health checks for all services\n\n**File:** docker-compose.base.yml\n```yaml\nversion: '3.9'\nservices:\n  traefik:\n    image: traefik:v2.11\n    command:\n      - \"--api.insecure=true\"\n      - \"--providers.docker=true\"\n      - \"--entrypoints.web.address=:80\"\n      - \"--entrypoints.websecure.address=:443\"\n    ports:\n      - \"80:80\"\n      - \"443:443\"\n      - \"8080:8080\"\n    volumes:\n      - \"/var/run/docker.sock:/var/run/docker.sock:ro\"\n      - \"/mnt/ssd/traefik:/letsencrypt\"\n    networks:\n      - erp-network\n  \n  postgres:\n    image: postgres:15-alpine\n    environment:\n      POSTGRES_USER: ${POSTGRES_USER:-erp}\n      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}\n      POSTGRES_DB: ${POSTGRES_DB:-erp_db}\n    volumes:\n      - /mnt/ssd/pgdata:/var/lib/postgresql/data\n    healthcheck:\n      test: [\"CMD-SHELL\", \"pg_isready -U $$POSTGRES_USER\"]\n      interval: 10s\n      timeout: 5s\n      retries: 5\n    networks:\n      - erp-network\n    deploy:\n      resources:\n        limits:\n          memory: 2048M\n  \n  nats:\n    image: nats:2.10-alpine\n    command: [\"-js\", \"-m\", \"8222\"]\n    ports:\n      - \"4222:4222\"\n      - \"8222:8222\"\n    volumes:\n      - /mnt/ssd/nats:/data\n    networks:\n      - erp-network\n    deploy:\n      resources:\n        limits:\n          memory: 512M\n  \n  minio:\n    image: minio/minio:latest\n    command: server /data --console-address \":9001\"\n    environment:\n      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}\n      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}\n    volumes:\n      - /mnt/ssd/minio:/data\n    ports:\n      - \"9000:9000\"\n      - \"9001:9001\"\n    networks:\n      - erp-network\n    deploy:\n      resources:\n        limits:\n          memory: 512M\n\nnetworks:\n  erp-network:\n    driver: bridge\n```",
+      "labels": ["infra", "P0", "devops"],
+      "pos": 2,
+      "checklists": [
+        {
+          "name": "Implementation",
+          "checkItems": [
+            "Create docker-compose.base.yml with Traefik, Postgres, NATS, MinIO",
+            "Configure all volume mounts to /mnt/ssd/*",
+            "Set memory limits for Pi constraints",
+            "Add health checks to all services",
+            "Create .env.example with all required variables",
+            "Configure Traefik for HTTPS (self-signed or Let's Encrypt)",
+            "Set up erp-network bridge network"
+          ]
+        },
+        {
+          "name": "Testing",
+          "checkItems": [
+            "docker compose -f docker-compose.base.yml up -d succeeds",
+            "All services show 'healthy' status",
+            "Postgres accessible: psql -h localhost -U erp -d erp_db",
+            "NATS accepting connections: nats-box pub test 'hello'",
+            "MinIO console accessible at http://localhost:9001",
+            "Traefik dashboard at http://localhost:8080"
+          ]
+        },
+        {
+          "name": "Demo",
+          "checkItems": [
+            "Services auto-restart on failure",
+            "Volumes persist data across restarts",
+            "Memory usage <6GB total"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "docker compose -f docker-compose.base.yml up -d starts all services",
+        "Postgres health check passes within 30s",
+        "NATS JetStream enabled and responding",
+        "MinIO S3 API returns 200 on health endpoint",
+        "Traefik routes requests to containers",
+        "All data volumes on external SSD"
+      ],
+      "estimate": "5pt",
+      "branch": "infra/base-compose",
+      "pr_title": "feat(infra): add base docker-compose with Postgres, NATS, MinIO, Traefik",
+      "assignees": ["@devops"],
+      "reviewers": ["@backend", "@lead"],
+      "dependencies": ["C01"]
+    },
+    {
+      "id": "C03",
+      "idList": "L03",
+      "name": "Set Up Prometheus + Grafana for Monitoring",
+      "desc": "**Summary:** Add Prometheus for metrics scraping and Grafana for dashboards to base compose stack.\n\n**References:** PRD §8 (observability), SAD §3 (monitoring)\n\n**Deliverables:**\n- Prometheus added to docker-compose.base.yml\n- Grafana added with pre-configured datasource\n- prometheus.yml config with scrape targets\n- Initial system dashboard imported\n\n**Prometheus Config (prometheus.yml):**\n```yaml\nglobal:\n  scrape_interval: 15s\n  evaluation_interval: 15s\n\nscrape_configs:\n  - job_name: 'prometheus'\n    static_configs:\n      - targets: ['localhost:9090']\n  \n  - job_name: 'postgres'\n    static_configs:\n      - targets: ['postgres-exporter:9187']\n  \n  - job_name: 'orders-service'\n    dns_sd_configs:\n      - names: ['orders']\n        type: A\n        port: 8000\n```",
+      "labels": ["infra", "monitoring", "P0"],
+      "pos": 3,
+      "checklists": [
+        {
+          "name": "Implementation",
+          "checkItems": [
+            "Add Prometheus service to docker-compose.base.yml",
+            "Add Grafana service to docker-compose.base.yml",
+            "Create prometheus.yml with base scrape configs",
+            "Configure Grafana datasource via provisioning",
+            "Set up persistent volumes for Prometheus data",
+            "Configure Grafana admin password via env var",
+            "Expose Prometheus on port 9090, Grafana on 3000"
+          ]
+        },
+        {
+          "name": "Testing",
+          "checkItems": [
+            "Prometheus UI accessible at http://localhost:9090",
+            "Prometheus targets showing 'UP' status",
+            "Grafana login works with configured credentials",
+            "Prometheus datasource auto-configured in Grafana",
+            "Basic metrics query returns data (up, node_cpu_seconds_total)"
+          ]
+        },
+        {
+          "name": "Demo",
+          "checkItems": [
+            "Import Node Exporter dashboard",
+            "Verify memory and CPU metrics visible",
+            "Test alert rule (optional for Sprint 1)"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "Prometheus scraping itself and showing in targets",
+        "Grafana accessible at http://localhost:3000",
+        "Datasource configured and query returns metrics",
+        "System dashboard showing Pi CPU, memory, disk",
+        "Prometheus retention set to 15d for Pi storage constraints"
+      ],
+      "estimate": "3pt",
+      "branch": "infra/monitoring-stack",
+      "pr_title": "feat(infra): add Prometheus and Grafana monitoring",
+      "assignees": ["@devops"],
+      "reviewers": ["@backend"],
+      "dependencies": ["C02"]
+    },
+    {
+      "id": "C04",
+      "idList": "L03",
+      "name": "Database Schema Migration — Core Tables",
+      "desc": "**Summary:** Create SQL migration scripts for core OLTP tables (customers, products, orders, invoices, ledger, employees).\n\n**References:** Data Model (all tables), OpenAPI (schemas)\n\n**Deliverables:**\n- migrations/001_initial_schema.sql with all core tables\n- Migration runner script (migrate.sh or Flyway/Liquibase)\n- Indexes per data model spec\n- Foreign key constraints with proper cascades\n\n**File:** migrations/001_initial_schema.sql\n```sql\n-- customers\nCREATE TABLE customers (\n    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n    name VARCHAR(255) NOT NULL,\n    email VARCHAR(255) UNIQUE NOT NULL,\n    phone VARCHAR(50),\n    created_at TIMESTAMPTZ DEFAULT NOW(),\n    metadata JSONB\n);\nCREATE INDEX idx_customers_email ON customers(email);\n\n-- products\nCREATE TABLE products (\n    sku VARCHAR(64) PRIMARY KEY,\n    name VARCHAR(255) NOT NULL,\n    description TEXT,\n    price NUMERIC(12,2) NOT NULL,\n    created_at TIMESTAMPTZ DEFAULT NOW()\n);\nCREATE INDEX idx_products_name ON products(name text_pattern_ops);\n\n-- inventory_items\nCREATE TABLE inventory_items (\n    sku VARCHAR(64) PRIMARY KEY REFERENCES products(sku),\n    qty_on_hand INTEGER NOT NULL DEFAULT 0,\n    reserved_qty INTEGER NOT NULL DEFAULT 0,\n    reorder_point INTEGER DEFAULT 0,\n    updated_at TIMESTAMPTZ DEFAULT NOW()\n);\n\n-- orders\nCREATE TABLE orders (\n    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n    customer_id UUID REFERENCES customers(id),\n    status VARCHAR(32) NOT NULL DEFAULT 'draft',\n    total_amount NUMERIC(14,2) NOT NULL,\n    created_at TIMESTAMPTZ DEFAULT NOW(),\n    metadata JSONB\n);\nCREATE INDEX idx_orders_customer ON orders(customer_id, created_at DESC);\nCREATE INDEX idx_orders_status ON orders(status);\n\n-- order_items\nCREATE TABLE order_items (\n    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n    order_id UUID REFERENCES orders(id) ON DELETE CASCADE,\n    sku VARCHAR(64) REFERENCES products(sku),\n    qty INTEGER NOT NULL,\n    price NUMERIC(12,2) NOT NULL\n);\nCREATE INDEX idx_order_items_order ON order_items(order_id);\n\n-- invoices\nCREATE TABLE invoices (\n    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n    order_id UUID REFERENCES orders(id),\n    amount NUMERIC(14,2) NOT NULL,\n    status VARCHAR(32) NOT NULL DEFAULT 'issued',\n    issued_at TIMESTAMPTZ DEFAULT NOW(),\n    due_date DATE,\n    paid_at TIMESTAMPTZ\n);\nCREATE INDEX idx_invoices_status ON invoices(status);\nCREATE INDEX idx_invoices_order ON invoices(order_id);\n\n-- ledger_entries\nCREATE TABLE ledger_entries (\n    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n    account VARCHAR(64) NOT NULL,\n    debit NUMERIC(14,2) DEFAULT 0,\n    credit NUMERIC(14,2) DEFAULT 0,\n    ref_type VARCHAR(32),\n    ref_id UUID,\n    created_at TIMESTAMPTZ DEFAULT NOW()\n);\nCREATE INDEX idx_ledger_account ON ledger_entries(account);\nCREATE INDEX idx_ledger_ref ON ledger_entries(ref_type, ref_id);\n\n-- employees\nCREATE TABLE employees (\n    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n    name VARCHAR(255) NOT NULL,\n    email VARCHAR(255) UNIQUE NOT NULL,\n    role VARCHAR(64),\n    salary_pence INTEGER,\n    payroll_meta JSONB,\n    created_at TIMESTAMPTZ DEFAULT NOW()\n);\nCREATE INDEX idx_employees_email ON employees(email);\n\n-- events_log (audit)\nCREATE TABLE events_log (\n    id BIGSERIAL PRIMARY KEY,\n    event_type VARCHAR(64) NOT NULL,\n    source VARCHAR(64) NOT NULL,\n    payload JSONB NOT NULL,\n    recorded_at TIMESTAMPTZ DEFAULT NOW()\n);\nCREATE INDEX idx_events_type ON events_log(event_type);\nCREATE INDEX idx_events_rec ON events_log(recorded_at DESC);\n```",
+      "labels": ["data", "backend", "P0"],
+      "pos": 4,
+      "checklists": [
+        {
+          "name": "Implementation",
+          "checkItems": [
+            "Create migrations directory structure",
+            "Write 001_initial_schema.sql with all tables",
+            "Add indexes per data model specification",
+            "Set up foreign key constraints with cascades",
+            "Create migrate.sh script to run migrations",
+            "Add rollback/down migration (optional for MVP)",
+            "Document migration procedure in README"
+          ]
+        },
+        {
+          "name": "Testing",
+          "checkItems": [
+            "Run migration against empty Postgres DB",
+            "Verify all tables created with \\dt",
+            "Verify indexes with \\di",
+            "Test foreign key constraints with test inserts",
+            "Verify JSONB columns accept valid JSON",
+            "Check default values and NOT NULL constraints"
+          ]
+        },
+        {
+          "name": "Security",
+          "checkItems": [
+            "Review for SQL injection risks in migrations",
+            "Ensure no hardcoded secrets in migration files"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "All tables from data model created successfully",
+        "Indexes match specification (pk, unique, btree)",
+        "Foreign keys enforce referential integrity",
+        "migrate.sh runs idempotently (can re-run safely)",
+        "Migration completes in <10s on Pi",
+        "Schema documented in migrations/README.md"
+      ],
+      "estimate": "5pt",
+      "branch": "data/initial-migrations",
+      "pr_title": "feat(data): add initial database schema migrations",
+      "assignees": ["@backend", "@data"],
+      "reviewers": ["@lead"],
+      "dependencies": ["C02"]
+    },
+    {
+      "id": "C08",
+      "idList": "L03",
+      "name": "Implement POST /orders — Orders Service",
+      "desc": "**Summary:** Build Orders service with POST /orders endpoint. Persist to Postgres, calculate total, emit order_created event to NATS.\n\n**References:** OpenAPI /orders POST, PRD §4 (MVP features), SAD §4 (data flow)\n\n**Deliverables:**\n- orders-service/ scaffolding (FastAPI or NestJS)\n- POST /orders handler with validation\n- Database insert (orders + order_items tables)\n- NATS event publisher\n- Unit and integration tests\n- Dockerfile for arm64\n- /healthz and /metrics endpoints\n\n**Example (FastAPI):**\n```python\n# orders-service/src/main.py\nfrom fastapi import FastAPI, HTTPException\nfrom pydantic import BaseModel\nfrom typing import List\nimport asyncpg\nimport nats\nimport uuid\nfrom datetime import datetime\n\napp = FastAPI()\n\nclass OrderItem(BaseModel):\n    sku: str\n    qty: int\n    price: float\n\nclass CreateOrderRequest(BaseModel):\n    customer_id: str\n    items: List[OrderItem]\n\n@app.post(\"/orders\", status_code=201)\nasync def create_order(order: CreateOrderRequest):\n    order_id = str(uuid.uuid4())\n    total = sum(item.qty * item.price for item in order.items)\n    \n    # Insert into DB\n    async with asyncpg.create_pool(DB_URL) as pool:\n        async with pool.acquire() as conn:\n            await conn.execute(\n                \"INSERT INTO orders (id, customer_id, total_amount, status) VALUES ($1, $2, $3, 'placed')\",\n                order_id, order.customer_id, total\n            )\n            for item in order.items:\n                await conn.execute(\n                    \"INSERT INTO order_items (order_id, sku, qty, price) VALUES ($1, $2, $3, $4)\",\n                    order_id, item.sku, item.qty, item.price\n                )\n    \n    # Emit event to NATS\n    nc = await nats.connect(NATS_URL)\n    await nc.publish(\"order.created\", json.dumps({\n        \"type\": \"order_created\",\n        \"order_id\": order_id,\n        \"customer_id\": order.customer_id,\n        \"total_amount\": total,\n        \"timestamp\": datetime.utcnow().isoformat()\n    }).encode())\n    await nc.close()\n    \n    return {\"id\": order_id, \"status\": \"placed\", \"total_amount\": total}\n```",
+      "labels": ["api", "backend", "P0"],
+      "pos": 5,
+      "checklists": [
+        {
+          "name": "Implementation",
+          "checkItems": [
+            "Scaffold orders-service directory (FastAPI/NestJS)",
+            "Implement POST /orders endpoint with request validation",
+            "Add database connection pool (asyncpg or TypeORM)",
+            "Implement order creation with transaction (orders + order_items)",
+            "Add NATS client and publish order_created event",
+            "Implement /healthz endpoint (DB + NATS connectivity)",
+            "Implement /metrics endpoint (Prometheus format)",
+            "Create Dockerfile with arm64 base image"
+          ]
+        },
+        {
+          "name": "Testing",
+          "checkItems": [
+            "Unit test: calculate total_amount correctly",
+            "Unit test: validate request schema (missing fields)",
+            "Integration test: POST /orders creates DB record",
+            "Integration test: order_created event published to NATS",
+            "Integration test: /healthz returns 200 when healthy",
+            "Manual test: curl POST with sample payload"
+          ]
+        },
+        {
+          "name": "Demo",
+          "checkItems": [
+            "Service builds successfully with docker buildx",
+            "Service starts and connects to Postgres and NATS",
+            "POST /orders returns 201 with order object",
+            "Metrics endpoint exposes request count"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "POST /orders returns 201 and order persisted to DB",
+        "order_created event emitted with correct payload schema",
+        "Request validation rejects invalid input (400)",
+        "Transaction rollback on DB error",
+        "/healthz returns 200 when dependencies healthy",
+        "/metrics exposes http_requests_total counter"
+      ],
+      "estimate": "8pt",
+      "branch": "feature/orders-api-create",
+      "pr_title": "feat(orders): implement POST /orders endpoint",
+      "assignees": ["@backend"],
+      "reviewers": ["@backend", "@devops"],
+      "dependencies": ["C02", "C04"]
+    },
+    {
+      "id": "C09",
+      "idList": "L03",
+      "name": "Implement GET /orders/{id} — Orders Service",
+      "desc": "**Summary:** Add GET endpoint to retrieve order by ID with all order items.\n\n**References:** OpenAPI /orders/{order_id} GET\n\n**Deliverables:**\n- GET /orders/{id} handler\n- Join query to fetch order + order_items\n- 404 handling for non-existent orders\n- Response matches OpenAPI Order schema\n\n**Example Response:**\n```json\n{\n  \"id\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"customer_id\": \"cust-001\",\n  \"items\": [\n    {\"sku\": \"CAM-1001\", \"qty\": 3, \"price\": 399.00}\n  ],\n  \"total_amount\": 1197.00,\n  \"status\": \"placed\",\n  \"created_at\": \"2025-10-04T10:00:00Z\"\n}\n```",
+      "labels": ["api", "backend", "P0"],
+      "pos": 6,
+      "checklists": [
+        {
+          "name": "Implementation",
+          "checkItems": [
+            "Add GET /orders/{order_id} route",
+            "Implement DB query with JOIN on order_items",
+            "Map DB rows to Order schema with nested items array",
+            "Handle 404 when order not found",
+            "Add cache headers (optional)"
+          ]
+        },
+        {
+          "name": "Testing",
+          "checkItems": [
+            "Integration test: GET existing order returns 200",
+            "Integration test: GET non-existent order returns 404",
+            "Unit test: order_items correctly nested in response",
+            "Load test: 100 concurrent GETs return <200ms p95"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "GET /orders/{id} returns order with items array",
+        "404 returned for non-existent order_id",
+        "Response matches OpenAPI Order schema",
+        "Query executes in <50ms on Pi (with indexes)"
+      ],
+      "estimate": "3pt",
+      "branch": "feature/orders-api-get",
+      "pr_title": "feat(orders): implement GET /orders/{id}",
+      "assignees": ["@backend"],
+      "reviewers": ["@backend"],
+      "dependencies": ["C08"]
+    },
+    {
+      "id": "C10",
+      "idList": "L03",
+      "name": "Implement PATCH /orders/{id} — Update Order Status",
+      "desc": "**Summary:** Add PATCH endpoint to update order status (draft → placed → shipped → completed).\n\n**References:** OpenAPI /orders/{order_id} PATCH\n\n**Deliverables:**\n- PATCH /orders/{id} handler\n- Status transition validation (state machine)\n- Emit order_updated event to NATS\n- Update DB atomically\n\n**State Machine:**\n```\ndraft → placed → shipped → completed\n           ↓\n       cancelled\n```",
+      "labels": ["api", "backend", "P0"],
+      "pos": 7,
+      "checklists": [
+        {
+          "name": "Implementation",
+          "checkItems": [
+            "Add PATCH /orders/{order_id} route",
+            "Implement status transition validation",
+            "Update orders.status in DB with optimistic locking (version field or WHERE clause)",
+            "Emit order_updated event with old/new status",
+            "Return updated order in response"
+          ]
+        },
+        {
+          "name": "Testing",
+          "checkItems": [
+            "Unit test: valid status transitions accepted",
+            "Unit test: invalid transitions rejected (400)",
+            "Integration test: PATCH updates DB and emits event",
+            "Integration test: concurrent PATCHs handled correctly"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "PATCH /orders/{id} updates status and returns 200",
+        "Invalid status transitions return 400 with error message",
+        "order_updated event emitted with old_status and new_status",
+        "Optimistic locking prevents race conditions"
+      ],
+      "estimate": "5pt",
+      "branch": "feature/orders-api-patch",
+      "pr_title": "feat(orders): implement PATCH /orders/{id} for status updates",
+      "assignees": ["@backend"],
+      "reviewers": ["@backend"],
+      "dependencies": ["C08", "C09"]
+    },
+    {
+      "id": "C11",
+      "idList": "L03",
+      "name": "Orders Service — Docker Image Build (arm64)",
+      "desc": "**Summary:** Create Dockerfile for Orders service with multi-stage build, push to local registry with arm64 tag.\n\n**References:** PRD §5 (Docker strategy), CI/CD guide\n\n**Deliverables:**\n- Dockerfile with multi-stage build\n- docker buildx command for arm64\n- Push to local registry at registry:5000/orders:latest\n- Add to docker-compose.erp.yml\n\n**Dockerfile (FastAPI example):**\n```dockerfile\nFROM python:3.11-slim AS builder\nWORKDIR /app\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\n\nFROM python:3.11-slim\nWORKDIR /app\nCOPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages\nCOPY src/ ./src/\nEXPOSE 8000\nCMD [\"uvicorn\", \"src.main:app\", \"--host\", \"0.0.0.0\", \"--port\", \"8000\"]\n```\n\n**Build Command:**\n```bash\ndocker buildx build --platform linux/arm64 \\\n  -t registry:5000/orders:latest \\\n  --push \\\n  ./orders-service/\n```",
+      "labels": ["ci/cd", "devops", "P0"],
+      "pos": 8,
+      "checklists": [
+        {
+          "name": "Implementation",
+          "checkItems": [
+            "Create Dockerfile with multi-stage build",
+            "Optimize layer caching (dependencies first)",
+            "Add .dockerignore (tests, .git, __pycache__)",
+            "Build with buildx for linux/arm64",
+            "Tag as registry:5000/orders:latest and :v0.1",
+            "Push to local registry",
+            "Add service to docker-compose.erp.yml"
+          ]
+        },
+        {
+          "name": "Testing",
+          "checkItems": [
+            "docker buildx build completes successfully",
+            "Image size <200MB (check docker images)",
+            "Container runs: docker run -p 8000:8000 registry:5000/orders:latest",
+            "Health check passes within 10s",
+            "Pull from registry works on Pi"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "Dockerfile builds successfully for arm64",
+        "Image pushed to registry:5000/orders:latest",
+        "Image size optimized (<200MB)",
+        "Container starts and /healthz returns 200",
+        "Service added to docker-compose.erp.yml"
+      ],
+      "estimate": "3pt",
+      "branch": "ci/orders-docker-build",
+      "pr_title": "ci(orders): add Dockerfile and buildx config for arm64",
+      "assignees": ["@devops", "@backend"],
+      "reviewers": ["@lead"],
+      "dependencies": ["C08"]
+    },
+    {
+      "id": "C12",
+      "idList": "L03",
+      "name": "Orders Service — Integration Tests (API + Events)",
+      "desc": "**Summary:** Write comprehensive integration tests covering full order flow: API → DB → NATS events.\n\n**References:** OpenAPI /orders endpoints, Demo Script §3\n\n**Deliverables:**\n- Integration test suite (pytest or Jest)\n- Test fixtures for Postgres and NATS\n- Tests for happy path and error scenarios\n- CI pipeline to run tests on PR\n\n**Test Cases:**\n- POST /orders creates order and emits event\n- GET /orders/{id} retrieves order correctly\n- PATCH /orders/{id} updates status and emits event\n- Invalid input returns 400\n- Non-existent order returns 404\n- DB transaction rollback on error",
+      "labels": ["qa", "backend", "P1"],
+      "pos": 9,
+      "checklists": [
+        {
+          "name": "Implementation",
+          "checkItems": [
+            "Set up test database (testcontainers or docker-compose.test.yml)",
+            "Create test fixtures for NATS connection",
+            "Write integration test: POST /orders",
+            "Write integration test: GET /orders/{id}",
+            "Write integration test: PATCH /orders/{id}",
+            "Write test: verify order_created event published",
+            "Write test: verify order_updated event published",
+            "Add coverage reporting (pytest-cov or nyc)"
+          ]
+        },
+        {
+          "name": "Testing",
+          "checkItems": [
+            "All tests pass locally",
+            "Tests run in <30s",
+            "Code coverage >80% for order handlers",
+            "Tests clean up DB state (rollback or truncate)"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "Integration tests cover POST, GET, PATCH /orders",
+        "Event emission verified in tests",
+        "Tests run in CI pipeline on every PR",
+        "Code coverage >80% for Orders service",
+        "Tests execute in <30s on Pi"
+      ],
+      "estimate": "5pt",
+      "branch": "test/orders-integration",
+      "pr_title": "test(orders): add integration tests for API and events",
+      "assignees": ["@backend", "@qa"],
+      "reviewers": ["@backend"],
+      "dependencies": ["C08", "C09", "C10"]
+    },
+    {
+      "id": "C13",
+      "idList": "L03",
+      "name": "Implement Inventory Service — Product CRUD",
+      "desc": "**Summary:** Build Inventory service with GET /inventory (list), POST /inventory (create/update product).\n\n**References:** OpenAPI /inventory, Data Model (products, inventory_items)\n\n**Deliverables:**\n- inventory-service scaffolding\n- GET /inventory endpoint (list all products with stock)\n- POST /inventory endpoint (upsert product + inventory_items)\n- DB schema: products + inventory_items\n- /healthz and /metrics endpoints\n\n**Example GET /inventory Response:**\n```json\n[\n  {\n    \"sku\": \"CAM-1001\",\n    \"name\": \"Camera Model A\",\n    \"description\": \"High-res camera\",\n    \"qty_on_hand\": 10,\n    \"reorder_point\": 2\n  }\n]\n```",
+      "labels": ["api", "backend", "P0"],
+      "pos": 10,
+      "checklists": [
+        {
+          "name": "Implementation",
+          "checkItems": [
+            "Scaffold inventory-service (FastAPI or NestJS)",
+            "Implement GET /inventory with JOIN on products + inventory_items",
+            "Implement POST /inventory with upsert logic (ON CONFLICT)",
+            "Add request validation for sku, qty_on_hand",
+            "Implement /healthz and /metrics",
+            "Create Dockerfile for arm64"
+          ]
+        },
+        {
+          "name": "Testing",
+          "checkItems": [
+            "Integration test: GET /inventory returns all products",
+            "Integration test: POST /inventory creates product",
+            "Integration test: POST /inventory updates existing product",
+            "Unit test: validate sku format",
+            "Load test: GET /inventory <100ms for 1000 products"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "GET /inventory returns products with stock levels",
+        "POST /inventory creates/updates product and inventory_items",
+        "Request validation enforces required fields",
+        "/healthz and /metrics endpoints functional",
+        "Service builds and runs on Pi"
+      ],
+      "estimate": "5pt",
+      "branch": "feature/inventory-crud",
+      "pr_title": "feat(inventory): implement product CRUD endpoints",
+      "assignees": ["@backend"],
+      "reviewers": ["@backend"],
+      "dependencies": ["C02", "C04"]
+    },
+    {
+      "id": "C14",
+      "idList": "L03",
+      "name": "Implement POST /inventory/{sku}/reserve — Stock Reservation",
+      "desc": "**Summary:** Add reservation endpoint to atomically reserve stock for an order. Update qty_on_hand and reserved_qty.\n\n**References:** OpenAPI /inventory/{sku}/reserve, SAD §4 (data flow)\n\n**Deliverables:**\n- POST /inventory/{sku}/reserve endpoint\n- Atomic DB transaction (SELECT FOR UPDATE)\n- Emit stock_reserved event to NATS\n- 409 Conflict if insufficient stock\n\n**Reservation Logic:**\n```sql\nBEGIN;\nSELECT qty_on_hand, reserved_qty FROM inventory_items WHERE sku = $1 FOR UPDATE;\n-- Check: qty_on_hand - reserved_qty >= requested_qty\nUPDATE inventory_items \n  SET reserved_qty = reserved_qty + $2 \n  WHERE sku = $1;\nCOMMIT;\n```",
+      "labels": ["api", "backend", "P0"],
+      "pos": 11,
+      "checklists": [
+        {
+          "name": "Implementation",
+          "checkItems": [
+            "Add POST /inventory/{sku}/reserve route",
+            "Implement atomic reservation with SELECT FOR UPDATE",
+            "Check available stock (qty_on_hand - reserved_qty)",
+            "Return 409 if insufficient stock",
+            "Emit stock_reserved event with sku, order_id, qty",
+            "Return 200 with reserved_qty on success"
+          ]
+        },
+        {
+          "name": "Testing",
+          "checkItems": [
+            "Integration test: successful reservation updates DB",
+            "Integration test: insufficient stock returns 409",
+            "Integration test: stock_reserved event emitted",
+            "Concurrency test: 10 parallel reservations don't oversell",
+            "Unit test: available stock calculation correct"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "POST /inventory/{sku}/reserve updates reserved_qty atomically",
+        "409 Conflict returned when stock unavailable",
+        "stock_reserved event emitted with order_id and qty",
+        "Concurrent reservations handled correctly (no overselling)",
+        "Transaction rolled back on error"
+      ],
+      "estimate": "5pt",
+      "branch": "feature/inventory-reserve",
+      "pr_title": "feat(inventory): implement stock reservation endpoint",
+      "assignees": ["@backend"],
+      "reviewers": ["@backend"],
+      "dependencies": ["C13"]
+    },
+    {
+      "id": "C15",
+      "idList": "L03",
+      "name": "Inventory Service — NATS Consumer for order_created",
+      "desc": "**Summary:** Implement NATS consumer to listen for order_created events and trigger automatic stock reservation.\n\n**References:** SAD §4 (data flow), Demo Script §4\n\n**Deliverables:**\n- NATS JetStream consumer subscribed to \"order.created\"\n- Handler calls internal reserve function for each order item\n- Error handling and retry logic\n- Emit stock_reserved or stock_reservation_failed events\n\n**Consumer Logic:**\n```python\nasync def handle_order_created(msg):\n    payload = json.loads(msg.data)\n    order_id = payload['order_id']\n    items = payload['items']\n    \n    for item in items:\n        try:\n            await reserve_stock(item['sku'], item['qty'], order_id)\n            await publish_event('stock.reserved', {...})\n        except InsufficientStockError:\n            await publish_event('stock.reservation_failed', {...})\n            # Potentially emit compensation event to cancel order\n```",
+      "labels": ["backend", "data", "P0"],
+      "pos": 12,
+      "checklists": [
+        {
+          "name": "Implementation",
+          "checkItems": [
+            "Set up NATS JetStream consumer for 'order.created' subject",
+            "Implement message handler to extract order items",
+            "Call reserve_stock for each item in order",
+            "Emit stock_reserved event on success",
+            "Emit stock_reservation_failed on insufficient stock",
+            "Add retry logic (max 3 retries with backoff)",
+            "Log all events to events_log table"
+          ]
+        },
+        {
+          "name": "Testing",
+          "checkItems": [
+            "Integration test: order_created triggers reservation",
+            "Integration test: stock_reserved event emitted",
+            "Integration test: insufficient stock emits failure event",
+            "Test retry logic with simulated failures",
+            "End-to-end test: POST /orders → stock reserved automatically"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "Consumer subscribed to order.created subject",
+        "Stock reservation triggered automatically on order creation",
+        "stock_reserved event emitted on success",
+        "stock_reservation_failed event emitted on error",
+        "Consumer handles message retries correctly",
+        "End-to-end flow: order → reservation <1s"
+      ],
+      "estimate": "5pt",
+      "branch": "feature/inventory-consumer",
+      "pr_title": "feat(inventory): add NATS consumer for order_created events",
+      "assignees": ["@backend"],
+      "reviewers": ["@backend"],
+      "dependencies": ["C14", "C08"]
+    },
+    {
+      "id": "C16",
+      "idList": "L03",
+      "name": "Inventory Service — Docker Build + Compose Integration",
+      "desc": "**Summary:** Create Dockerfile for Inventory service and add to docker-compose.erp.yml.\n\n**References:** CI/CD guide, docker-compose.erp.yml\n\n**Deliverables:**\n- Dockerfile with arm64 build\n- Build and push to registry:5000/inventory:latest\n- Add to docker-compose.erp.yml with dependencies on postgres, nats\n- Health check configuration",
+      "labels": ["ci/cd", "devops", "P0"],
+      "pos": 13,
+      "checklists": [
+        {
+          "name": "Implementation",
+          "checkItems": [
+            "Create Dockerfile with multi-stage build",
+            "Build with docker buildx --platform linux/arm64",
+            "Push to registry:5000/inventory:latest",
+            "Add service to docker-compose.erp.yml",
+            "Configure depends_on: postgres, nats",
+            "Set memory limit to 512M",
+            "Add healthcheck command"
+          ]
+        },
+        {
+          "name": "Testing",
+          "checkItems": [
+            "docker buildx build succeeds",
+            "Image pushed to local registry",
+            "docker compose -f base.yml -f erp.yml up starts inventory",
+            "Health check passes within 20s",
+            "Inventory service can connect to Postgres and NATS"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "Dockerfile builds successfully for arm64",
+        "Image <150MB in size",
+        "Service added to docker-compose.erp.yml",
+        "Service starts and /healthz returns 200",
+        "Consumer connects to NATS and processes messages"
+      ],
+      "estimate": "3pt",
+      "branch": "ci/inventory-docker",
+      "pr_title": "ci(inventory): add Dockerfile and compose integration",
+      "assignees": ["@devops"],
+      "reviewers": ["@backend"],
+      "dependencies": ["C13", "C14", "C15"]
+    },
+    {
+      "id": "C17",
+      "idList": "L03",
+      "name": "Implement Billing Service — POST /billing/invoices",
+      "desc": "**Summary:** Build Billing service with invoice creation endpoint. Listen to order_created events and auto-generate invoices.\n\n**References:** OpenAPI /billing/invoices POST, SAD §4\n\n**Deliverables:**\n- billing-service scaffolding\n- POST /billing/invoices endpoint\n- NATS consumer for order_created → auto-create invoice\n- Emit invoice_created event\n- /healthz and /metrics\n\n**Auto-Invoice Logic:**\n```python\nasync def handle_order_created(msg):\n    payload = json.loads(msg.data)\n    invoice_id = str(uuid.uuid4())\n    \n    await db.execute(\n        \"INSERT INTO invoices (id, order_id, amount, status, due_date) VALUES ($1, $2, $3, 'issued', $4)\",\n        invoice_id, payload['order_id'], payload['total_amount'], \n        (datetime.utcnow() + timedelta(days=30)).date()\n    )\n    \n    await nc.publish('invoice.created', {...})\n```",
+      "labels": ["api", "backend", "P0"],
+      "pos": 14,
+      "checklists": [
+        {
+          "name": "Implementation",
+          "checkItems": [
+            "Scaffold billing-service",
+            "Implement POST /billing/invoices endpoint",
+            "Add NATS consumer for order_created events",
+            "Implement auto-invoice creation logic",
+            "Emit invoice_created event to NATS",
+            "Add /healthz and /metrics endpoints",
+            "Create Dockerfile for arm64"
+          ]
+        },
+        {
+          "name": "Testing",
+          "checkItems": [
+            "Integration test: POST /billing/invoices creates invoice",
+            "Integration test: order_created triggers auto-invoice",
+            "Integration test: invoice_created event emitted",
+            "Unit test: due_date calculation (30 days from issue)",
+            "End-to-end: POST /orders → invoice auto-created"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "POST /billing/invoices creates invoice in DB",
+        "order_created event triggers automatic invoice creation",
+        "invoice_created event emitted with invoice details",
+        "due_date set to 30 days from issued_at",
+        "Service exposes /healthz and /metrics"
+      ],
+      "estimate": "5pt",
+      "branch": "feature/billing-invoices",
+      "pr_title": "feat(billing): implement invoice creation and auto-generation",
+      "assignees": ["@backend"],
+      "reviewers": ["@backend"],
+      "dependencies": ["C02", "C04", "C08"]
+    },
+    {
+      "id": "C18",
+      "idList": "L03",
+      "name": "Implement POST /billing/invoices/{id}/pay — Mark Invoice Paid",
+      "desc": "**Summary:** Add payment endpoint to mark invoice as paid, create ledger entries, emit payment_received event.\n\n**References:** OpenAPI /billing/invoices/{id}/pay, Data Model (ledger_entries)\n\n**Deliverables:**\n- POST /billing/invoices/{id}/pay endpoint\n- Update invoices.status to 'paid'\n- Create ledger entries (debit cash, credit AR)\n- Emit payment_received event\n\n**Ledger Entry Logic:**\n```python\n# Debit: Cash (asset account)\nawait db.execute(\n    \"INSERT INTO ledger_entries (account, debit, ref_type, ref_id) VALUES ('cash', $1, 'invoice', $2)\",\n    amount, invoice_id\n)\n# Credit: Accounts Receivable\nawait db.execute(\n    \"INSERT INTO ledger_entries (account, credit, ref_type, ref_id) VALUES ('accounts_receivable', $1, 'invoice', $2)\",\n    amount, invoice_id\n)\n```",
+      "labels": ["api", "backend", "P0"],
+      "pos": 15,
+      "checklists": [
+        {
+          "name": "Implementation",
+          "checkItems": [
+            "Add POST /billing/invoices/{id}/pay route",
+            "Update invoices.status to 'paid' and set paid_at",
+            "Create ledger entries (debit cash, credit AR)",
+            "Emit payment_received event",
+            "Handle idempotency (already paid invoices return 200)",
+            "Add transaction wrapper for DB operations"
+          ]
+        },
+        {
+          "name": "Testing",
+          "checkItems": [
+            "Integration test: payment updates invoice status",
+            "Integration test: ledger entries created correctly",
+            "Integration test: payment_received event emitted",
+            "Integration test: idempotency (double payment returns 200)",
+            "Unit test: ledger entry amounts match invoice amount"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "POST /billing/invoices/{id}/pay marks invoice as paid",
+        "Ledger entries created with correct debit/credit",
+        "payment_received event emitted",
+        "Idempotent (duplicate payments handled gracefully)",
+        "Transaction ensures atomicity"
+      ],
+      "estimate": "5pt",
+      "branch": "feature/billing-payment",
+      "pr_title": "feat(billing): implement invoice payment endpoint",
+      "assignees": ["@backend"],
+      "reviewers": ["@backend"],
+      "dependencies": ["C17"]
+    },
+    {
+      "id": "C19",
+      "idList": "L03",
+      "name": "Billing Service — PDF Invoice Generation (MinIO)",
+      "desc": "**Summary:** Generate PDF invoices and store in MinIO on invoice creation. Return download URL.\n\n**References:** PRD §2 (MinIO for attachments)\n\n**Deliverables:**\n- PDF generation library integration (ReportLab or pdfkit)\n- Invoice template rendering\n- Upload to MinIO bucket 'invoices'\n- Return presigned URL in API response\n\n**PDF Generation Example:**\n```python\nfrom reportlab.pdfgen import canvas\nimport io\n\ndef generate_invoice_pdf(invoice):\n    buffer = io.BytesIO()\n    pdf = canvas.Canvas(buffer)\n    pdf.drawString(100, 750, f\"Invoice #{invoice['id']}\")\n    pdf.drawString(100, 730, f\"Amount: ${invoice['amount']}\")\n    pdf.save()\n    buffer.seek(0)\n    return buffer\n\n# Upload to MinIO\ns3_client.put_object(\n    Bucket='invoices',\n    Key=f\"{invoice_id}.pdf\",\n    Body=pdf_buffer\n)\nurl = s3_client.generate_presigned_url('get_object', ...)\n```",
+      "labels": ["backend", "P1"],
+      "pos": 16,
+      "checklists": [
+        {
+          "name": "Implementation",
+          "checkItems": [
+            "Add PDF generation library (reportlab or weasyprint)",
+            "Create invoice template (HTML or programmatic)",
+            "Implement PDF generation function",
+            "Add MinIO client (boto3 or minio-py)",
+            "Upload PDF to 'invoices' bucket on invoice creation",
+            "Return presigned download URL in API response",
+            "Add pdf_url field to invoice response schema"
+          ]
+        },
+        {
+          "name": "Testing",
+          "checkItems": [
+            "Integration test: PDF generated on invoice creation",
+            "Integration test: PDF uploaded to MinIO",
+            "Manual test: download presigned URL returns PDF",
+            "Test: PDF contains correct invoice data",
+            "Test: presigned URL expires after 1 hour"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "PDF invoice generated on invoice creation",
+        "PDF uploaded to MinIO 'invoices' bucket",
+        "API response includes pdf_url with presigned URL",
+        "PDF download works via presigned URL",
+        "PDF contains invoice details (id, amount, items)"
+      ],
+      "estimate": "5pt",
+      "branch": "feature/billing-pdf-generation",
+      "pr_title": "feat(billing): add PDF invoice generation and MinIO storage",
+      "assignees": ["@backend"],
+      "reviewers": ["@backend"],
+      "dependencies": ["C17", "C02"]
+    },
+    {
+      "id": "C20",
+      "idList": "L03",
+      "name": "Billing Service — Docker Build + Compose Integration",
+      "desc": "**Summary:** Dockerize Billing service and add to docker-compose.erp.yml.\n\n**References:** CI/CD guide\n\n**Deliverables:**\n- Dockerfile for arm64\n- Build and push to registry:5000/billing:latest\n- Add to docker-compose.erp.yml\n- Configure dependencies: postgres, nats, minio",
+      "labels": ["ci/cd", "devops", "P0"],
+      "pos": 17,
+      "checklists": [
+        {
+          "name": "Implementation",
+          "checkItems": [
+            "Create Dockerfile with multi-stage build",
+            "Build with docker buildx --platform linux/arm64",
+            "Push to registry:5000/billing:latest",
+            "Add to docker-compose.erp.yml",
+            "Set depends_on: postgres, nats, minio",
+            "Add health check",
+            "Set memory limit to 512M"
+          ]
+        },
+        {
+          "name": "Testing",
+          "checkItems": [
+            "Build succeeds",
+            "Image pushed to registry",
+            "Service starts with docker compose",
+            "Health check passes",
+            "Service connects to MinIO (test S3 upload)"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "Billing service Dockerfile builds for arm64",
+        "Image pushed to local registry",
+        "Service in docker-compose.erp.yml",
+        "/healthz returns 200",
+        "MinIO integration functional"
+      ],
+      "estimate": "3pt",
+      "branch": "ci/billing-docker",
+      "pr_title": "ci(billing): add Dockerfile and compose integration",
+      "assignees": ["@devops"],
+      "reviewers": ["@backend"],
+      "dependencies": ["C17", "C18", "C19"]
+    },
+    {
+      "id": "C21",
+      "idList": "L03",
+      "name": "OLAP Worker — NATS Consumer for Event Materialization",
+      "desc": "**Summary:** Build stream consumer worker to subscribe to all domain events and materialize to DuckDB tables.\n\n**References:** PRD §3 (data flow), SAD §3 (OLAP pipeline)\n\n**Deliverables:**\n- olap-worker service (Python or Go)\n- NATS JetStream consumers for order.*, stock.*, invoice.*, payment.* subjects\n- Event handlers to update DuckDB aggregates\n- DuckDB connection and table initialization\n\n**DuckDB Materialization Example:**\n```python\nimport duckdb\n\ncon = duckdb.connect('/olap/analytics.duckdb')\n\nasync def handle_order_created(msg):\n    payload = json.loads(msg.data)\n    con.execute(\"\"\"\n        INSERT INTO sales_by_hour (hour, total_amount, order_count)\n        VALUES (date_trunc('hour', ?), ?, 1)\n        ON CONFLICT (hour) DO UPDATE \n        SET total_amount = sales_by_hour.total_amount + EXCLUDED.total_amount,\n            order_count = sales_by_hour.order_count + 1\n    \"\"\", [payload['timestamp'], payload['total_amount']])\n```",
+      "labels": ["bi", "data", "P0"],
+      "pos": 18,
+      "checklists": [
+        {
+          "name": "Implementation",
+          "checkItems": [
+            "Scaffold olap-worker service",
+            "Set up DuckDB connection to /olap/analytics.duckdb",
+            "Create DuckDB tables: sales_by_hour, stock_snapshot, ar_ageing",
+            "Subscribe to NATS subjects: order.*, stock.*, invoice.*, payment.*",
+            "Implement event handlers for each event type",
+            "Upsert logic for aggregate tables (INSERT ON CONFLICT)",
+            "Add /healthz endpoint",
+            "Create Dockerfile for arm64"
+          ]
+        },
+        {
+          "name": "Testing",
+          "checkItems": [
+            "Integration test: order_created updates sales_by_hour",
+            "Integration test: payment_received updates ar_ageing",
+            "Integration test: stock_reserved updates stock_snapshot",
+            "Test: DuckDB file persists across worker restarts",
+            "Load test: 1000 events processed in <10s"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "OLAP worker subscribes to all domain event subjects",
+        "Events materialized to DuckDB tables",
+        "sales_by_hour, stock_snapshot, ar_ageing tables updated",
+        "Worker handles message retries on DB errors",
+        "DuckDB file persisted to /mnt/ssd/olap volume"
+      ],
+      "estimate": "8pt",
+      "branch": "feature/olap-worker",
+      "pr_title": "feat(olap): implement NATS consumer for event materialization",
+      "assignees": ["@backend", "@data"],
+      "reviewers": ["@backend"],
+      "dependencies": ["C02", "C08", "C17"]
+    },
+    {
+      "id": "C22",
+      "idList": "L03",
+      "name": "DuckDB Schema — Create OLAP Tables",
+      "desc": "**Summary:** Define DuckDB schema for analytical tables (sales_by_hour, stock_snapshot, ar_ageing).\n\n**References:** Data Model (OLAP structures)\n\n**Deliverables:**\n- DuckDB SQL scripts for table creation\n- Initialization script run by olap-worker on startup\n- Indexes for query performance\n\n**Schema:**\n```sql\nCREATE TABLE IF NOT EXISTS sales_by_hour (\n    hour TIMESTAMP PRIMARY KEY,\n    total_amount DECIMAL(14,2) DEFAULT 0,\n    order_count INTEGER DEFAULT 0\n);\n\nCREATE TABLE IF NOT EXISTS stock_snapshot (\n    sku VARCHAR(64) PRIMARY KEY,\n    qty_on_hand INTEGER,\n    reserved_qty INTEGER,\n    snapshot_at TIMESTAMP\n);\n\nCREATE TABLE IF NOT EXISTS ar_ageing (\n    bucket VARCHAR(16) PRIMARY KEY,\n    total_ar DECIMAL(14,2),\n    as_of TIMESTAMP\n);\n```",
+      "labels": ["data", "bi", "P0"],
+      "pos": 19,
+      "checklists": [
+        {
+          "name": "Implementation",
+          "checkItems": [
+            "Create olap-schema.sql with table definitions",
+            "Add primary keys and constraints",
+            "Create indexes for common query patterns",
+            "Add initialization logic in olap-worker startup",
+            "Test idempotent creation (CREATE IF NOT EXISTS)"
+          ]
+        },
+        {
+          "name": "Testing",
+          "checkItems": [
+            "SQL script runs successfully in DuckDB",
+            "Tables created with correct schema",
+            "Queries against empty tables succeed",
+            "Re-running script doesn't error (idempotent)"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "DuckDB tables created on olap-worker startup",
+        "Schema matches data model specification",
+        "Initialization is idempotent",
+        "Tables queryable via DuckDB CLI"
+      ],
+      "estimate": "3pt",
+      "branch": "data/olap-schema",
+      "pr_title": "feat(data): add DuckDB OLAP table schema",
+      "assignees": ["@data"],
+      "reviewers": ["@backend"],
+      "dependencies": []
+    },
+    {
+      "id": "C23",
+      "idList": "L03",
+      "name": "OLAP HTTP Query API — DuckDB Query Endpoint",
+      "desc": "**Summary:** Build lightweight HTTP API to query DuckDB for Grafana datasource.\n\n**References:** SAD §3 (BI pipeline)\n\n**Deliverables:**\n- FastAPI service with GET /query endpoint\n- SQL query execution against DuckDB\n- JSON response formatting\n- CORS headers for Grafana\n- Basic query validation and sanitization\n\n**Endpoint Example:**\n```python\n@app.get(\"/query\")\nasync def query_olap(sql: str):\n    # Validate query (allow SELECT only)\n    if not sql.strip().upper().startswith('SELECT'):\n        raise HTTPException(400, \"Only SELECT queries allowed\")\n    \n    con = duckdb.connect('/olap/analytics.duckdb', read_only=True)\n    result = con.execute(sql).fetchall()\n    columns = [desc[0] for desc in con.description]\n    \n    return {\n        \"columns\": columns,\n        \"rows\": result\n    }\n```",
+      "labels": ["api", "bi", "P0"],
+      "pos": 20,
+      "checklists": [
+        {
+          "name": "Implementation",
+          "checkItems": [
+            "Create olap-query-api service (FastAPI)",
+            "Implement GET /query endpoint",
+            "Add query validation (SELECT only, no DROP/DELETE)",
+            "Connect to DuckDB in read-only mode",
+            "Format response as JSON with columns and rows",
+            "Add CORS middleware for Grafana",
+            "Add /healthz endpoint",
+            "Create Dockerfile"
+          ]
+        },
+        {
+          "name": "Testing",
+          "checkItems": [
+            "Integration test: valid SELECT query returns results",
+            "Integration test: non-SELECT query returns 400",
+            "Integration test: SQL injection attempt blocked",
+            "Manual test: curl query endpoint with sample SQL",
+            "Test: CORS headers present in response"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "GET /query executes SELECT queries against DuckDB",
+        "Response format: {columns: [], rows: []}",
+        "Non-SELECT queries rejected with 400",
+        "CORS enabled for Grafana origin",
+        "Read-only DuckDB connection prevents writes"
+      ],
+      "estimate": "5pt",
+      "branch": "feature/olap-query-api",
+      "pr_title": "feat(olap): add HTTP query API for DuckDB",
+      "assignees": ["@backend"],
+      "reviewers": ["@backend"],
+      "dependencies": ["C22"]
+    },
+    {
+      "id": "C24",
+      "idList": "L03",
+      "name": "Grafana Dashboards — Import Business Metrics",
+      "desc": "**Summary:** Create Grafana dashboards for sales, inventory, and cashflow metrics.\n\n**References:** Demo Script §6 (dashboard demo), PRD §4 (dashboard features)\n\n**Deliverables:**\n- Dashboard JSON definitions\n- Grafana provisioning config to auto-import\n- Panels: sales_by_hour (time series), stock levels (gauge), AR aging (bar chart)\n- DuckDB datasource configuration\n\n**Dashboard Panels:**\n1. Sales by Hour (Time Series) — SELECT hour, total_amount FROM sales_by_hour\n2. Stock Levels (Table) — SELECT sku, qty_on_hand, reserved_qty FROM stock_snapshot\n3. Low Stock Alerts (Stat) — SELECT COUNT(*) FROM stock_snapshot WHERE qty_on_hand < reorder_point\n4. AR Aging (Bar Chart) — SELECT bucket, total_ar FROM ar_ageing",
+      "labels": ["bi", "P0"],
+      "pos": 21,
+      "checklists": [
+        {
+          "name": "Implementation",
+          "checkItems": [
+            "Create dashboard JSON for Sales & Cashflow",
+            "Add panel: Sales by Hour (time series query)",
+            "Add panel: Stock Levels (table query)",
+            "Add panel: Low Stock Count (stat panel)",
+            "Add panel: AR Aging (bar chart)",
+            "Configure DuckDB datasource in provisioning/datasources/",
+            "Configure dashboard provisioning in provisioning/dashboards/",
+            "Test dashboard loads on Grafana startup"
+          ]
+        },
+        {
+          "name": "Testing",
+          "checkItems": [
+            "Dashboards auto-imported on Grafana startup",
+            "All panels load without errors",
+            "Queries return data from DuckDB",
+            "Refresh interval set to 5s for demo",
+            "Dashboard renders correctly on mobile (responsive)"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "Grafana dashboards auto-imported on startup",
+        "Sales by Hour panel shows time series data",
+        "Stock Levels panel shows current inventory",
+        "Low Stock alert stat panel updates on threshold",
+        "Queries execute in <500ms",
+        "Dashboards accessible at http://localhost:3000/d/erp-sales"
+      ],
+      "estimate": "5pt",
+      "branch": "feature/grafana-dashboards",
+      "pr_title": "feat(bi): add Grafana dashboards for business metrics",
+      "assignees": ["@bi", "@frontend"],
+      "reviewers": ["@lead"],
+      "dependencies": ["C03", "C23"]
+    },
+    {
+      "id": "C25",
+      "idList": "L03",
+      "name": "OLAP Stack — Docker Compose Integration",
+      "desc": "**Summary:** Create docker-compose.bi.yml with olap-worker, olap-query-api, and Grafana dashboards.\n\n**References:** PRD §5 (compose separation)\n\n**Deliverables:**\n- docker-compose.bi.yml\n- Volume mounts for DuckDB data on SSD\n- Service dependencies configured\n- Health checks for all services\n\n**Compose File:**\n```yaml\nversion: '3.9'\nservices:\n  olap-worker:\n    image: registry:5000/olap-worker:latest\n    depends_on:\n      - nats\n    volumes:\n      - /mnt/ssd/olap:/olap\n    networks:\n      - erp-network\n    deploy:\n      resources:\n        limits:\n          memory: 512M\n  \n  olap-query-api:\n    image: registry:5000/olap-query-api:latest\n    ports:\n      - \"8001:8000\"\n    volumes:\n      - /mnt/ssd/olap:/olap:ro\n    networks:\n      - erp-network\n```",
+      "labels": ["ci/cd", "devops", "P0"],
+      "pos": 22,
+      "checklists": [
+        {
+          "name": "Implementation",
+          "checkItems": [
+            "Create docker-compose.bi.yml",
+            "Add olap-worker service",
+            "Add olap-query-api service",
+            "Configure shared /olap volume on SSD",
+            "Set depends_on for service ordering",
+            "Add health checks",
+            "Configure Grafana datasource to point to olap-query-api"
+          ]
+        },
+        {
+          "name": "Testing",
+          "checkItems": [
+            "docker compose -f base.yml -f erp.yml -f bi.yml up -d succeeds",
+            "All BI services healthy",
+            "DuckDB file created in /mnt/ssd/olap/",
+            "Grafana can query olap-query-api",
+            "End-to-end: event → DuckDB → Grafana query <2s"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "docker-compose.bi.yml starts all OLAP services",
+        "DuckDB data persisted to external SSD",
+        "olap-query-api responds to queries",
+        "Grafana dashboards display live data",
+        "Services auto-restart on failure"
+      ],
+      "estimate": "3pt",
+      "branch": "ci/bi-compose",
+      "pr_title": "ci(bi): add docker-compose for OLAP stack",
+      "assignees": ["@devops"],
+      "reviewers": ["@backend"],
+      "dependencies": ["C21", "C23", "C24"]
+    },
+    {
+      "id": "C26",
+      "idList": "L03",
+      "name": "Frontend — Next.js Project Setup + Tailwind",
+      "desc": "**Summary:** Initialize Next.js project with TypeScript, Tailwind CSS, and base layout.\n\n**References:** Style Guide (React conventions), PRD §2 (Next.js UI)\n\n**Deliverables:**\n- Next.js 14 with App Router\n- TypeScript configuration (strict mode)\n- Tailwind CSS setup\n- Base layout with navigation\n- API client setup (fetch wrapper)\n\n**Setup Commands:**\n```bash\nnpx create-next-app@latest erp-ui --typescript --tailwind --app\ncd erp-ui\nnpm install\n```",
+      "labels": ["frontend", "P0"],
+      "pos": 23,
+      "checklists": [
+        {
+          "name": "Implementation",
+          "checkItems": [
+            "Create Next.js project with TypeScript and Tailwind",
+            "Configure tsconfig.json (strict: true, paths alias @/*)",
+            "Set up Tailwind config with custom theme",
+            "Create app/layout.tsx with navigation header",
+            "Create lib/api-client.ts with fetch wrapper",
+            "Add .env.local with API_BASE_URL",
+            "Set up ESLint with Style Guide rules",
+            "Create Dockerfile for Next.js (arm64)"
+          ]
+        },
+        {
+          "name": "Testing",
+          "checkItems": [
+            "npm run dev starts dev server",
+            "Tailwind classes render correctly",
+            "TypeScript compilation succeeds",
+            "ESLint passes with no errors",
+            "Production build succeeds: npm run build"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "Next.js project initialized with TypeScript",
+        "Tailwind CSS configured and working",
+        "Base layout with responsive navigation",
+        "API client ready for service integration",
+        "Strict TypeScript enabled (no any, type-only imports)"
+      ],
+      "estimate": "3pt",
+      "branch": "feature/frontend-setup",
+      "pr_title": "feat(ui): initialize Next.js project with TypeScript and Tailwind",
+      "assignees": ["@frontend"],
+      "reviewers": ["@frontend"],
+      "dependencies": []
+    },
+    {
+      "id": "C27",
+      "idList": "L03",
+      "name": "Frontend — Order Creation Form",
+      "desc": "**Summary:** Build order creation form with customer selection, product selection, quantity input.\n\n**References:** OpenAPI POST /orders, Style Guide (form components)\n\n**Deliverables:**\n- app/orders/new/page.tsx\n- Customer select dropdown (fetch from API)\n- Product multi-select with quantity\n- Total calculation display\n- Form submission with POST /orders\n- Success/error notifications\n\n**Form Fields:**\n- Customer (select dropdown)\n- Products (multi-select with quantity input)\n- Total Amount (calculated, read-only)\n- Submit button",
+      "labels": ["frontend", "P0"],
+      "pos": 24,
+      "checklists": [
+        {
+          "name": "Implementation",
+          "checkItems": [
+            "Create app/orders/new/page.tsx",
+            "Implement customer select (fetch from /customers API)",
+            "Implement product multi-select component",
+            "Add quantity input for each product",
+            "Calculate total dynamically (qty * price)",
+            "Implement form submission handler",
+            "Call POST /orders API on submit",
+            "Show success toast on order created",
+            "Show error toast on failure",
+            "Redirect to order detail on success"
+          ]
+        },
+        {
+          "name": "Testing",
+          "checkItems": [
+            "Unit test: total calculation correct",
+            "Integration test: form submits and creates order",
+            "Manual test: create order end-to-end",
+            "Test: validation prevents empty submission",
+            "Test: error handling displays error message"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "Order creation form renders with all fields",
+        "Customer and product data loaded from APIs",
+        "Total amount calculated correctly",
+        "Form submission creates order via POST /orders",
+        "Success notification shown on order creation",
+        "Form follows Style Guide (named exports, type-only imports)"
+      ],
+      "estimate": "8pt",
+      "branch": "feature/ui-order-form",
+      "pr_title": "feat(ui): implement order creation form",
+      "assignees": ["@frontend"],
+      "reviewers": ["@frontend"],
+      "dependencies": ["C26", "C08"]
+    },
+    {
+      "id": "C28",
+      "idList": "L03",
+      "name": "Frontend — Inventory Management UI",
+      "desc": "**Summary:** Build inventory list and product create/edit forms.\n\n**References:** OpenAPI /inventory endpoints\n\n**Deliverables:**\n- app/inventory/page.tsx (list view)\n- app/inventory/new/page.tsx (create form)\n- Table component for product list\n- Form for product CRUD\n- Stock level indicators (color-coded)\n\n**Features:**\n- Product list table (SKU, name, qty, reorder point)\n- Color indicators: green (sufficient), yellow (low), red (critical)\n- Add product button → new form\n- Edit product (inline or modal)\n- Search/filter by SKU or name",
+      "labels": ["frontend", "P0"],
+      "pos": 25,
+      "checklists": [
+        {
+          "name": "Implementation",
+          "checkItems": [
+            "Create app/inventory/page.tsx with product list",
+            "Fetch products from GET /inventory",
+            "Render table with SKU, name, qty_on_hand, reorder_point",
+            "Add color indicators (green/yellow/red based on stock)",
+            "Create app/inventory/new/page.tsx for product form",
+            "Implement POST /inventory on form submit",
+            "Add search/filter input (client-side)",
+            "Add edit functionality (PATCH or PUT endpoint)"
+          ]
+        },
+        {
+          "name": "Testing",
+          "checkItems": [
+            "Integration test: list loads products",
+            "Integration test: create product form submits",
+            "Manual test: color indicators correct",
+            "Test: search filters list correctly",
+            "Test: edit updates product"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "Inventory list displays all products",
+        "Stock indicators color-coded correctly",
+        "Create product form functional",
+        "Search/filter works client-side",
+        "Edit product updates via API"
+      ],
+      "estimate": "8pt",
+      "branch": "feature/ui-inventory",
+      "pr_title": "feat(ui): implement inventory management UI",
+      "assignees": ["@frontend"],
+      "reviewers": ["@frontend"],
+      "dependencies": ["C26", "C13"]
+    },
+    {
+      "id": "C29",
+      "idList": "L03",
+      "name": "Frontend — Invoice List & Payment UI",
+      "desc": "**Summary:** Build invoice list view and payment action button.\n\n**References:** OpenAPI /billing/invoices endpoints\n\n**Deliverables:**\n- app/billing/page.tsx (invoice list)\n- Invoice table (ID, order, amount, status, due date)\n- Payment button for 'issued' invoices\n- POST /billing/invoices/{id}/pay on button click\n- PDF download link\n\n**Features:**\n- Invoice list filtered by status (issued, paid, overdue)\n- Mark as paid button (only for issued)\n- PDF download icon/link\n- Status badges (color-coded)",
+      "labels": ["frontend", "P0"],
+      "pos": 26,
+      "checklists": [
+        {
+          "name": "Implementation",
+          "checkItems": [
+            "Create app/billing/page.tsx",
+            "Fetch invoices from GET /billing/invoices",
+            "Render table with invoice details",
+            "Add status filter dropdown (issued/paid/overdue)",
+            "Implement 'Mark as Paid' button for issued invoices",
+            "Call POST /billing/invoices/{id}/pay on click",
+            "Add PDF download link (presigned URL)",
+            "Show success toast on payment",
+            "Refresh list after payment"
+          ]
+        },
+        {
+          "name": "Testing",
+          "checkItems": [
+            "Integration test: invoice list loads",
+            "Integration test: payment button calls API",
+            "Manual test: mark invoice as paid",
+            "Test: PDF download link works",
+            "Test: status filter updates list"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "Invoice list displays all invoices",
+        "Status badges color-coded",
+        "Payment button marks invoice as paid",
+        "PDF download link functional",
+        "Filter by status works"
+      ],
+      "estimate": "5pt",
+      "branch": "feature/ui-billing",
+      "pr_title": "feat(ui): implement invoice list and payment UI",
+      "assignees": ["@frontend"],
+      "reviewers": ["@frontend"],
+      "dependencies": ["C26", "C17", "C18"]
+    },
+    {
+      "id": "C30",
+      "idList": "L03",
+      "name": "Frontend — Embed Grafana Dashboards",
+      "desc": "**Summary:** Embed Grafana dashboards in ERP UI using iframe.\n\n**References:** PRD §4 (dashboard embed), Demo Script §6\n\n**Deliverables:**\n- app/dashboards/page.tsx\n- Iframe embed for Grafana dashboard\n- Grafana anonymous auth or API key auth\n- Responsive iframe sizing\n\n**Implementation:**\n```tsx\nexport const DashboardsPage = () => {\n  return (\n    <div className=\"h-screen\">\n      <iframe\n        src=\"http://localhost:3000/d/erp-sales?orgId=1&kiosk\"\n        className=\"w-full h-full border-0\"\n        title=\"ERP Dashboards\"\n      />\n    </div>\n  )\n}\n```",
+      "labels": ["frontend", "bi", "P0"],
+      "pos": 27,
+      "checklists": [
+        {
+          "name": "Implementation",
+          "checkItems": [
+            "Create app/dashboards/page.tsx",
+            "Add Grafana iframe with kiosk mode URL",
+            "Configure Grafana for iframe embedding (X-Frame-Options)",
+            "Set up anonymous access or embed auth token",
+            "Make iframe responsive (full height/width)",
+            "Add navigation link to dashboards in header"
+          ]
+        },
+        {
+          "name": "Testing",
+          "checkItems": [
+            "Manual test: dashboard loads in iframe",
+            "Test: responsive on mobile",
+            "Test: no CORS or X-Frame-Options errors",
+            "Test: panels update with live data"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "Grafana dashboard embedded in ERP UI",
+        "Dashboard displays live metrics",
+        "Responsive iframe sizing",
+        "No CORS or iframe blocking errors",
+        "Navigation link to /dashboards in header"
+      ],
+      "estimate": "3pt",
+      "branch": "feature/ui-dashboard-embed",
+      "pr_title": "feat(ui): embed Grafana dashboards in ERP UI",
+      "assignees": ["@frontend"],
+      "reviewers": ["@frontend", "@bi"],
+      "dependencies": ["C24", "C26"]
+    },
+    {
+      "id": "C31",
+      "idList": "L03",
+      "name": "Frontend — Docker Build + Compose Integration",
+      "desc": "**Summary:** Dockerize Next.js UI and add to docker-compose.erp.yml.\n\n**References:** CI/CD guide\n\n**Deliverables:**\n- Dockerfile with Next.js standalone build\n- Build for arm64\n- Push to registry:5000/erp-ui:latest\n- Add to docker-compose.erp.yml\n- Configure Traefik routing\n\n**Dockerfile:**\n```dockerfile\nFROM node:20-alpine AS builder\nWORKDIR /app\nCOPY package*.json ./\nRUN npm ci\nCOPY . .\nRUN npm run build\n\nFROM node:20-alpine\nWORKDIR /app\nCOPY --from=builder /app/.next/standalone ./\nCOPY --from=builder /app/.next/static ./.next/static\nCOPY --from=builder /app/public ./public\nEXPOSE 3000\nCMD [\"node\", \"server.js\"]\n```",
+      "labels": ["ci/cd", "devops", "frontend", "P0"],
+      "pos": 28,
+      "checklists": [
+        {
+          "name": "Implementation",
+          "checkItems": [
+            "Create Dockerfile with multi-stage build",
+            "Enable Next.js standalone output in next.config.js",
+            "Build with docker buildx --platform linux/arm64",
+            "Push to registry:5000/erp-ui:latest",
+            "Add to docker-compose.erp.yml",
+            "Configure Traefik labels for routing (erp.demo.local)",
+            "Set environment variables (API_BASE_URL)"
+          ]
+        },
+        {
+          "name": "Testing",
+          "checkItems": [
+            "Build succeeds",
+            "Image <300MB",
+            "Container runs and serves on port 3000",
+            "Traefik routes requests to UI",
+            "UI accessible via https://erp.demo.local"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "Next.js Dockerfile builds for arm64",
+        "Image pushed to local registry",
+        "UI service in docker-compose.erp.yml",
+        "Traefik routes to UI container",
+        "UI accessible via configured domain"
+      ],
+      "estimate": "5pt",
+      "branch": "ci/ui-docker",
+      "pr_title": "ci(ui): add Dockerfile and Traefik routing",
+      "assignees": ["@devops", "@frontend"],
+      "reviewers": ["@lead"],
+      "dependencies": ["C26", "C27", "C28", "C29", "C30"]
+    },
+    {
+      "id": "C49",
+      "idList": "L03",
+      "name": "Demo — Seed Data Script",
+      "desc": "**Summary:** Create seed_demo.sh script to populate DB with demo data (customers, products, orders).\n\n**References:** Demo Script (seed data)\n\n**Deliverables:**\n- scripts/seed_demo.sh\n- SQL inserts for 3 customers, 5 products, 10 sample orders\n- Idempotent execution (TRUNCATE or ON CONFLICT)\n- Execution time <30s\n\n**Seed Data:**\n- Customers: Acme Corp, Beta Ltd, Gamma LLC\n- Products: CAM-1001 (10), CAM-2002 (5), TRI-300 (50), BAT-150 (100), CABLE-01 (200)\n- Orders: 10 small orders spread across products\n\n**Script:**\n```bash\n#!/bin/bash\nPGSQL=\"psql -h localhost -U erp -d erp_db\"\n\n$PGQL <<EOF\nTRUNCATE customers, products, inventory_items, orders, order_items, invoices, ledger_entries CASCADE;\n\nINSERT INTO customers (id, name, email) VALUES\n('cust-001', 'Acme Corp', 'acme@example.com'),\n('cust-002', 'Beta Ltd', 'beta@example.com'),\n('cust-003', 'Gamma LLC', 'gamma@example.com');\n\nINSERT INTO products (sku, name, price) VALUES\n('CAM-1001', 'Camera Model A', 399.00),\n('CAM-2002', 'Camera Model B', 599.00),\n('TRI-300', 'Tripod', 49.99),\n('BAT-150', 'Battery Pack', 29.99),\n('CABLE-01', 'USB Cable', 9.99);\n\nINSERT INTO inventory_items (sku, qty_on_hand, reorder_point) VALUES\n('CAM-1001', 10, 2),\n('CAM-2002', 5, 1),\n('TRI-300', 50, 5),\n('BAT-150', 100, 10),\n('CABLE-01', 200, 20);\n\n-- Sample orders...\nEOF\n```",
+      "labels": ["qa", "data", "P0"],
+      "pos": 29,
+      "checklists": [
+        {
+          "name": "Implementation",
+          "checkItems": [
+            "Create scripts/seed_demo.sh",
+            "Add TRUNCATE statements for clean slate",
+            "Insert 3 customers",
+            "Insert 5 products with inventory",
+            "Insert 10 sample orders with items",
+            "Make script executable: chmod +x",
+            "Add usage instructions in comments"
+          ]
+        },
+        {
+          "name": "Testing",
+          "checkItems": [
+            "Script runs successfully: ./scripts/seed_demo.sh",
+            "Data appears in tables (psql SELECT)",
+            "Re-running script is idempotent",
+            "Execution completes in <30s",
+            "Foreign key constraints satisfied"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "seed_demo.sh populates DB with demo data",
+        "3 customers, 5 products, 10 orders created",
+        "Script is idempotent (can re-run safely)",
+        "Execution time <30s on Pi",
+        "Data ready for demo flow"
+      ],
+      "estimate": "3pt",
+      "branch": "demo/seed-data",
+      "pr_title": "feat(demo): add seed data script",
+      "assignees": ["@backend", "@qa"],
+      "reviewers": ["@lead"],
+      "dependencies": ["C04"]
+    },
+    {
+      "id": "C50",
+      "idList": "L03",
+      "name": "Demo — End-to-End Smoke Test (Playwright)",
+      "desc": "**Summary:** Write Playwright E2E test for core demo flow: create order → reserve stock → generate invoice → pay → dashboard update.\n\n**References:** Demo Script (7-minute flow), PRD §4 (MVP features)\n\n**Deliverables:**\n- Playwright test suite\n- Test: create product and stock\n- Test: create customer\n- Test: create order\n- Test: verify invoice auto-created\n- Test: mark invoice as paid\n- Test: verify dashboard updated\n\n**Test Flow:**\n```typescript\ntest('demo flow: order to dashboard', async ({ page }) => {\n  // 1. Create product\n  await page.goto('/inventory/new')\n  await page.fill('[data-testid=\"sku\"]', 'TEST-001')\n  await page.fill('[data-testid=\"name\"]', 'Test Product')\n  await page.fill('[data-testid=\"qty\"]', '10')\n  await page.click('[data-testid=\"submit\"]')\n  \n  // 2. Create order\n  await page.goto('/orders/new')\n  await page.selectOption('[data-testid=\"customer\"]', 'cust-001')\n  await page.selectOption('[data-testid=\"product\"]', 'TEST-001')\n  await page.fill('[data-testid=\"qty\"]', '3')\n  await page.click('[data-testid=\"submit\"]')\n  \n  // 3. Verify invoice created\n  await page.goto('/billing')\n  await expect(page.locator('[data-testid=\"invoice-status\"]')).toContainText('issued')\n  \n  // 4. Pay invoice\n  await page.click('[data-testid=\"pay-button\"]')\n  await expect(page.locator('[data-testid=\"invoice-status\"]')).toContainText('paid')\n  \n  // 5. Check dashboard updated\n  await page.goto('/dashboards')\n  // Assert dashboard shows updated metrics (within iframe or via API check)\n})\n```",
+      "labels": ["qa", "P0"],
+      "pos": 30,
+      "checklists": [
+        {
+          "name": "Implementation",
+          "checkItems": [
+            "Install Playwright: npm install -D @playwright/test",
+            "Create tests/e2e/demo-flow.spec.ts",
+            "Write test: create product",
+            "Write test: create order",
+            "Write test: verify invoice created (poll API or UI)",
+            "Write test: mark invoice paid",
+            "Write test: verify dashboard updated (check OLAP data or UI)",
+            "Add test-ids to UI components per Style Guide"
+          ]
+        },
+        {
+          "name": "Testing",
+          "checkItems": [
+            "Run test: npx playwright test",
+            "Test passes end-to-end",
+            "Test completes in <60s",
+            "Screenshots captured on failure",
+            "Test runs in CI pipeline"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "Playwright test covers full demo flow",
+        "Test creates order and verifies invoice",
+        "Test verifies payment and dashboard update",
+        "Test passes consistently",
+        "Test runs in CI on every PR"
+      ],
+      "estimate": "8pt",
+      "branch": "test/e2e-demo-flow",
+      "pr_title": "test(e2e): add Playwright smoke test for demo flow",
+      "assignees": ["@qa", "@frontend"],
+      "reviewers": ["@lead"],
+      "dependencies": ["C27", "C28", "C29", "C30", "C49"]
+    },
+    {
+      "id": "C51",
+      "idList": "L03",
+      "name": "Demo — Rehearsal & Timing Script",
+      "desc": "**Summary:** Rehearse demo script, time each step, create cheat sheet for presenter.\n\n**References:** Demo Script (7-minute walkthrough)\n\n**Deliverables:**\n- Rehearsal notes (what works, what needs polish)\n- Timing breakdown (seconds per step)\n- Presenter cheat sheet (one-page PDF)\n- Demo video recording (optional)\n\n**Cheat Sheet Contents:**\n1. Pre-demo checklist (services up, seed data loaded)\n2. Step-by-step commands/clicks with timings\n3. Expected outcomes for each step\n4. Recovery steps for common failures\n5. Q&A prep (common questions)",
+      "labels": ["docs", "qa", "P0"],
+      "pos": 31,
+      "checklists": [
+        {
+          "name": "Implementation",
+          "checkItems": [
+            "Run full demo script 3 times",
+            "Time each step with stopwatch",
+            "Document any hiccups or delays",
+            "Create presenter cheat sheet (Markdown or PDF)",
+            "Add recovery steps (restart service, re-seed)",
+            "Prepare Q&A responses (architecture, scalability)",
+            "Record demo video (optional, for review)"
+          ]
+        },
+        {
+          "name": "Demo Polish",
+          "checkItems": [
+            "All steps complete within 7 minutes",
+            "Dashboard updates visible <2s",
+            "UI flows smooth (no delays/glitches)",
+            "Presenter confident with narrative",
+            "Backup plan for failures documented"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "Demo rehearsed 3+ times successfully",
+        "Each step timed and documented",
+        "Cheat sheet created and reviewed",
+        "Full demo completes in <7 minutes",
+        "Recovery procedures documented"
+      ],
+      "estimate": "3pt",
+      "branch": "demo/rehearsal",
+      "pr_title": "docs(demo): add rehearsal notes and presenter cheat sheet",
+      "assignees": ["@lead", "@qa"],
+      "reviewers": ["@all"],
+      "dependencies": ["C49", "C50"]
+    },
+    {
+      "id": "C52",
+      "idList": "L03",
+      "name": "Documentation — README & Architecture Docs",
+      "desc": "**Summary:** Write comprehensive README with setup instructions, architecture diagrams, API docs.\n\n**References:** All project docs (PRD, SAD, OpenAPI, Data Model)\n\n**Deliverables:**\n- README.md with project overview, setup, demo instructions\n- ARCHITECTURE.md with system diagram and component descriptions\n- API.md with endpoint documentation (generated from OpenAPI)\n- DATA_MODEL.md with table schemas\n- CONTRIBUTING.md with development workflow\n\n**README Sections:**\n1. Overview & Features\n2. Architecture (link to ARCHITECTURE.md)\n3. Prerequisites (Pi 5, Docker, SSD)\n4. Setup Instructions (step-by-step)\n5. Running the Demo (link to demo script)\n6. Development (how to contribute)\n7. Troubleshooting\n8. License",
+      "labels": ["docs", "P0"],
+      "pos": 32,
+      "checklists": [
+        {
+          "name": "Implementation",
+          "checkItems": [
+            "Write README.md with all sections",
+            "Create ARCHITECTURE.md with ASCII diagrams",
+            "Generate API.md from OpenAPI spec (swagger-cli or redoc-cli)",
+            "Write DATA_MODEL.md with table schemas",
+            "Create CONTRIBUTING.md with PR workflow",
+            "Add LICENSE file (MIT or Apache 2.0)",
+            "Review all docs for clarity and completeness"
+          ]
+        },
+        {
+          "name": "Review",
+          "checkItems": [
+            "Docs reviewed by all team members",
+            "Setup instructions tested by fresh user",
+            "Links and references validated",
+            "Diagrams render correctly on GitHub"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "README.md provides complete setup instructions",
+        "ARCHITECTURE.md explains system design clearly",
+        "API.md documents all endpoints with examples",
+        "DATA_MODEL.md shows all table schemas",
+        "Docs reviewed and approved by team"
+      ],
+      "estimate": "5pt",
+      "branch": "docs/readme-architecture",
+      "pr_title": "docs: add comprehensive README and architecture documentation",
+      "assignees": ["@lead", "@backend"],
+      "reviewers": ["@all"],
+      "dependencies": ["C51"]
+    },
+    {
+      "id": "M01",
+      "idList": "L09",
+      "name": "Release: v0.1 MVP Demo",
+      "desc": "**Milestone:** First demo-ready release on Raspberry Pi 5\n\n**Target Date:** End of Sprint 1 (Day 7)\n\n**Scope:**\n- Core ERP services (Orders, Inventory, Billing) functional\n- Real-time OLAP pipeline operational\n- Grafana dashboards displaying live metrics\n- Frontend UI with order/inventory/billing flows\n- End-to-end demo script executable\n- Documentation complete\n\n**Acceptance Criteria:**\n- All Sprint 1 cards completed\n- Demo rehearsed successfully 3+ times\n- Services stable for >24 hours\n- Dashboard latency <2s order → update\n- Memory usage <6GB on Pi\n\n**Deliverables:**\n- Git tag: v0.1.0\n- Docker images pushed to registry with :v0.1 tag\n- Demo video recorded\n- README instructions validated",
+      "labels": ["P0"],
+      "pos": 1
+    },
+    {
+      "id": "M02",
+      "idList": "L09",
+      "name": "Release: v0.2 Production-Ready",
+      "desc": "**Milestone:** Production-ready release with auth, CI/CD, monitoring, backups\n\n**Target Date:** End of Sprint 2 (Day 14)\n\n**Scope:**\n- Keycloak authentication integrated\n- GitHub Actions CI/CD pipeline\n- Automated backups and restore tested\n- Comprehensive test coverage (>80%)\n- Load testing completed\n- Security hardening (secrets, HTTPS, RBAC)\n\n**Acceptance Criteria:**\n- All Sprint 2 cards completed\n- Auth flow functional (login, roles, JWT)\n- CI/CD builds and deploys automatically\n- Backup/restore validated\n- Load test: 100 concurrent users, <500ms p95\n- Security audit passed\n\n**Deliverables:**\n- Git tag: v0.2.0\n- Production deployment guide\n- Security audit report\n- Load test results",
+      "labels": ["P1"],
+      "pos": 2
+    }
+  ]
+}

@@ -1,0 +1,109 @@
+# Demo Script — ERP + BI Hybrid (7-minute walkthrough)
+
+## Preparation (run beforehand)
+
+1. On Pi: `docker compose -f docker-compose.base.yml -f docker-compose.erp.yml -f docker-compose.bi.yml up -d`
+2. Seed DB with test data (script `seed_demo.sh`) — creates 3 customers, 5 products, stock levels, and 10 sample orders.
+3. Ensure Grafana dashboards are loaded (pre-import JSON) and datasource points to OLAP HTTP adapter / DuckDB.
+
+---
+
+## 7-minute demo flow (scripted)
+
+### 0: Intro (30s)
+
+* “This is a self-hosted ERP + BI demo on a Raspberry Pi. I’ll create an order and show the full flow: stock reservation, invoice generation, payment, and live dashboard updates.”
+
+### 1: Create a product & stock (30s)
+
+* Open ERP UI → Inventory → Add Product:
+
+  * SKU: `CAM-1001`, Name: `Camera Model A`, Price: £399.00, Qty on hand: 10, Reorder point: 2
+* Click Save.
+* (Show API call in terminal if asked)
+
+  * `curl -X POST https://api.demo.example.com/inventory -d '{"sku":"CAM-1001","name":"Camera Model A","qty_on_hand":10,"reorder_point":2,"price":399.00}' -H "Authorization: Bearer $TOKEN"`
+
+### 2: Create a customer (20s)
+
+* UI → Customers → New:
+
+  * Name: `Acme Corp`, Email: `acme@example.com`.
+* Save.
+
+### 3: Place an order (60s)
+
+* UI → Orders → New Order:
+
+  * Customer: `Acme Corp`
+  * Add item: `CAM-1001`, qty: `3` → total £1,197.00
+  * Submit order (status = `placed`)
+* Show API response / order ID.
+
+### 4: Watch Inventory reserve & Invoice create (30s)
+
+* Inventory service receives `order_created` and reserves 3 units (qty_on_hand -> 7, reserved_qty -> 3). Show inventory row update.
+* Billing service auto-creates invoice with `status=issued`. Show invoice in Billing UI.
+
+### 5: Pay invoice (30s)
+
+* Billing UI → Open invoice → Mark Paid (simulate payment).
+* Invoice status becomes `paid`; ledger entry is created.
+
+### 6: Show dashboards update (60s)
+
+* Switch to Grafana → open “Sales & Cashflow” dashboard.
+
+  * Show `sales_by_hour` spike for the new order (near realtime).
+  * Show `stock_snapshot` reflecting new qty_on_hand.
+  * Show `accounts_receivable` decreased after payment.
+* If alerts configured: show low-stock alert if reorder threshold reached by another demo order.
+
+### 7: Drill into event log / audit (30s)
+
+* Open Audit UI → filter `event_type=order_created` → show event with payload including order_id, customer_id, items.
+
+### 8: Backup demo (30s)
+
+* Run `./scripts/backup_now.sh` to show `pg_dump` created and `rclone` started copying to remote. Show backup file present.
+
+### 9: Wrap / Q&A (30s)
+
+* “This demonstrates real-time sync between OLTP and OLAP, an end-to-end order lifecycle, and operational controls (alerts, audit, backups) — all on a single Pi.”
+* Offer to run a repeat scenario (e.g., create a second order that triggers reorder alert).
+
+---
+
+## Seed data (example records)
+
+* Products: `CAM-1001 (10)`, `CAM-2002 (5)`, `TRI-300 (50)`, `BAT-150 (100)`, `CABLE-01 (200)`
+* Customers: `Acme Corp`, `Beta Ltd`, `Gamma LLC`
+* Orders: 10 small orders across the products to populate `sales_by_hour` sample.
+
+---
+
+## Useful commands (copy/paste)
+
+* Up: `docker compose -f base.yml -f erp.yml -f bi.yml up -d`
+* Logs (orders): `docker compose logs -f orders`
+* Reserve via API (test):
+
+  ```bash
+  curl -X POST "https://api.demo.example.com/inventory/CAM-1001/reserve" \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "Content-Type: application/json" \
+    -d '{"order_id":"<order-uuid>","qty":3}'
+  ```
+* Trigger OLAP rebuild (if needed): `curl -X POST https://api.demo.example.com/olap/rebuild -H "Authorization: Bearer $TOKEN"`
+
+---
+
+## Failure mode script (optional)
+
+* Simulate payment gateway down: toggle `BILLING_GATEWAY_ENABLED=false` in `.env` and restart billing container. Place order → invoice remains `issued`; show dashboard AR aging and trigger alert. Restore env and re-run worker to process queued payments.
+
+---
+
+## Final notes
+
+Keep this script memorised and time-boxed. The point is to show: data ingestion → eventing → OLAP materialization → immediate business insight. Good visual changes and clear narrative win the interview.

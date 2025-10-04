@@ -1,0 +1,142 @@
+# Data Model — Core Tables (normalized for MVP)
+
+## Guiding principles
+
+* Keep schemas small and explicit for Pi constraints.
+* Use UUID primary keys. Timestamp fields in UTC. Foreign keys for referential integrity. Light indexing for read patterns used in dashboards.
+
+---
+
+## Tables
+
+### customers
+
+* id: UUID PK
+* name: varchar(255)
+* email: varchar(255), unique
+* phone: varchar(50)
+* created_at: timestamptz
+* metadata: jsonb (optional)
+
+Indexes: pk(id), idx_customers_email (unique)
+
+---
+
+### products
+
+* sku: varchar(64) PK
+* name: varchar(255)
+* description: text
+* price: numeric(12,2)
+* created_at: timestamptz
+
+Indexes: pk(sku), idx_products_name (btree text_pattern_ops)
+
+---
+
+### inventory_items
+
+* sku: varchar(64) PK -> products.sku
+* qty_on_hand: integer
+* reserved_qty: integer DEFAULT 0
+* reorder_point: integer DEFAULT 0
+* updated_at: timestamptz
+
+Indexes: pk(sku)
+
+---
+
+### orders
+
+* id: UUID PK
+* customer_id: UUID FK -> customers.id
+* status: varchar(32) (draft, placed, cancelled, shipped, completed)
+* total_amount: numeric(14,2)
+* created_at: timestamptz
+* metadata: jsonb
+
+Indexes: pk(id), idx_orders_customer(created_at)
+
+---
+
+### order_items
+
+* id: UUID PK
+* order_id: UUID FK -> orders.id
+* sku: varchar(64) FK -> products.sku
+* qty: integer
+* price: numeric(12,2)
+
+Indexes: idx_order_items_order(order_id)
+
+---
+
+### invoices
+
+* id: UUID PK
+* order_id: UUID FK -> orders.id
+* amount: numeric(14,2)
+* status: varchar(32) (issued, paid, overdue)
+* issued_at: timestamptz
+* due_date: date
+* paid_at: timestamptz NULLABLE
+
+Indexes: pk(id), idx_invoices_status(status), idx_invoices_order(order_id)
+
+---
+
+### ledger_entries
+
+* id: UUID PK
+* account: varchar(64)
+* debit: numeric(14,2)
+* credit: numeric(14,2)
+* ref_type: varchar(32) (order, invoice, payroll)
+* ref_id: UUID
+* created_at: timestamptz
+
+Indexes: idx_ledger_account(account), idx_ledger_ref(ref_type, ref_id)
+
+---
+
+### employees
+
+* id: UUID PK
+* name: varchar(255)
+* email: varchar(255) unique
+* role: varchar(64)
+* salary_pence: integer (or numeric)
+* payroll_meta: jsonb
+* created_at: timestamptz
+
+Indexes: pk(id), idx_employees_email(unique)
+
+---
+
+### events_log (audit append-only)
+
+* id: bigserial PK
+* event_type: varchar(64)
+* source: varchar(64)
+* payload: jsonb
+* recorded_at: timestamptz DEFAULT now()
+
+Indexes: idx_events_type(event_type), idx_events_rec(recorded_at desc)
+
+---
+
+## OLAP materialized structures (DuckDB/Parquet derived)
+
+* **sales_by_hour**: (hour timestamptz, total_amount numeric, order_count int)
+* **stock_snapshot**: (sku, qty_on_hand, reserved_qty, snapshot_at timestamptz)
+* **ar_ageing**: (bucket_30, bucket_60, bucket_90, total_ar numeric, as_of timestamptz)
+
+OLAP update policy: stream consumer increments/refreshes these files on events or regenerates daily.
+
+---
+
+## Notes
+
+* For MVP all services may share a single Postgres DB with schemas: `orders`, `inventory`, `billing`, `hr`. When scaling, move to per-service DBs or schemas as appropriate.
+* Use `jsonb` sparingly — only for metadata and extension points.
+* Keep indices minimal to preserve write throughput on Pi.

@@ -1,0 +1,87 @@
+# System Architecture Document — ERP + BI Hybrid
+
+## 1. Purpose
+
+Provide a clear, implementable architecture for the ERP + BI Hybrid MVP: modular microservices for Orders, Inventory, Billing, HR, a streaming/event layer for real-time analytics, an OLAP store for dashboards, and infrastructure glue (Ingress/SSO/observability). Target demo environment: Raspberry Pi 5 (arm64, 8GB) with Docker Compose; production can move to k8s.
+
+---
+
+## 2. High-level goals
+
+* Single coherent demo: create order → reserve stock → generate invoice → pay → dashboard updates in <2s.
+* Modularity: each domain is a small service with its own API and emits domain events.
+* Observability & recoverability: metrics, logs, backups.
+* Pi-friendly: lightweight components (NATS over Kafka, DuckDB over ClickHouse where feasible), arm64 images, memory limits.
+
+---
+
+## 3. Components & responsibilities
+
+* **Ingress / TLS (Traefik)**: HTTPS termination, routing to services, dashboard hostnames.
+* **Auth / SSO (Keycloak)**: OAuth2/JWT, role-based access (admin, accountant, clerk).
+* **API Gateway** (FastAPI/Golang): façade, request validation, auth delegation, API composition for UI.
+* **ERP Microservices (domain services)**:
+
+  * Orders Service — accepts orders, calculates totals, publishes `order_created`, `order_updated`.
+  * Inventory Service — product catalog, stock counts, reservation logic, publishes `stock_reserved`, `stock_changed`.
+  * Billing Service — invoices, payments, ledger entries, publishes `invoice_created`, `payment_received`.
+  * HR Service — employees, payroll meta (MVP minimal).
+    Each service: its own small DB schema (can be shared Postgres for MVP), health endpoint, metrics.
+* **Message Bus (NATS JetStream)**: durable publish/subscribe for domain events; chosen for low memory footprint and simple operation on Pi.
+* **OLAP / BI pipeline**:
+
+  * Stream Consumer(s) — subscribe to NATS, materialize aggregates / denormalized tables into DuckDB (or Parquet files).
+  * DuckDB files stored on disk (olap_data volume) and queried by Grafana (via plugin) or Superset.
+* **Object Storage (MinIO)**: attachments (invoices, documents).
+* **DB (Postgres)**: OLTP; use a single instance for MVP with schemas per service or one schema and clear ownership rules.
+* **CI / Build (BuildKit + local registry)**: multi-arch build pipelines; push arm64 images for Pi.
+* **Monitoring & Logging**: Prometheus (metrics), Grafana (dashboards), Loki (optional) / fluent-bit for log forwarding.
+* **Backups**: nightly `pg_dump`, OLAP snapshot copy (rsync/restic), push to external disk or cloud via `rclone`.
+
+---
+
+## 4. Data flow (normal order-to-dashboard)
+
+1. UI -> API Gateway -> Orders Service creates order in Postgres.
+2. Orders Service emits `order_created` to NATS.
+3. Inventory Service subscribes; attempts to reserve stock; updates Postgres; emits `stock_reserved`/`stock_changed`.
+4. Billing Service listens to `order_created`, creates invoice, writes to Postgres, emits `invoice_created`.
+5. OLAP consumer(s) subscribe to all events and update DuckDB aggregates (sales_by_hour, AR aging, stock levels).
+6. Grafana queries DuckDB or a lightweight HTTP query API to render real-time dashboards.
+
+---
+
+## 5. Deployment topology (Compose for Pi demo)
+
+* `docker-compose.base.yml`: traefik, keycloak, postgres, nats, minio, prometheus, grafana.
+* `docker-compose.erp.yml`: orders, inventory, billing, hr.
+* `docker-compose.bi.yml`: olap-worker, duckdb-mount, grafana dashboards.
+* Use named volumes for persistence: pgdata, nats_stream, minio_data, olap_data. Move volumes to external SSD if available.
+
+---
+
+## 6. Non-Functional Requirements (NFRs)
+
+* Demo latency: dashboard update within 2s for standard flows.
+* Memory: cap any single service to ≤1024MB; keep total demo memory footprint ≤6GB.
+* Availability: restart policies `unless-stopped`; backups daily.
+* Security: HTTPS, JWT tokens, roles, never expose Postgres outside the host network.
+
+---
+
+## 7. Scaling & production notes
+
+* Replace NATS with Kafka if heavy throughput needed.
+* Replace DuckDB with ClickHouse/Trino for larger OLAP workloads.
+* Use k8s for multi-node HA, with PVs on cloud block storage for Postgres and OLAP.
+
+---
+
+## 8. Operational runbook (short)
+
+* Start services: `docker compose -f base.yml -f erp.yml -f bi.yml up -d`.
+* Health: check `/healthz` on each service, Prometheus targets, Grafana metrics.
+* Backup Postgres: `pg_dump` to /backups then `rclone copy` to remote.
+* Restore: stop services, restore `pg_restore`, restart consumers to rebuild OLAP.
+
+---
