@@ -30,13 +30,18 @@ export interface CreateOrderRequest {
 export interface Product {
   sku: string;
   name: string;
+  description?: string;
   price: number;
+  created_at?: string;
+  updated_at?: string;
+  metadata?: Record<string, any>;
+  inventory?: InventoryItem;
 }
 
 export interface InventoryItem {
   sku: string;
-  qty_on_hand: number;
-  reserved_qty: number;
+  qty_on_hand: number | null;
+  reserved_qty: number | null;
 }
 
 export interface StockReservationRequest {

@@ -1,0 +1,3 @@
+-- 002_update_inventory_quantities_rollback.sql
+-- No direct rollback for data correction.
+-- If needed, manual intervention would be required to restore previous state.

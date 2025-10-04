@@ -27,13 +27,16 @@ export default function StockAdjustmentPage() {
 
   const loadData = async () => {
     try {
-      const [productRes, inventoryRes] = await Promise.all([
-        api.inventory.getProduct(sku),
-        api.inventory.get(sku),
-      ]);
+      const productRes = await api.inventory.getProduct(sku); // This returns ProductResponse
 
       setProduct(productRes.data);
-      setInventory(inventoryRes.data);
+      // Extract inventory item from the product response
+      if (productRes.data.inventory) {
+        setInventory(productRes.data.inventory);
+      } else {
+        // Handle case where product has no inventory item (e.g., set default 0s)
+        setInventory({ sku: sku, qty_on_hand: 0, reserved_qty: 0 });
+      }
     } catch (error) {
       console.error('Failed to load data:', error);
       setError('Failed to load product information');
@@ -49,7 +52,7 @@ export default function StockAdjustmentPage() {
     setError('');
 
     try {
-      const newQty = inventory.qty_on_hand + delta;
+      const newQty = (inventory.qty_on_hand ?? 0) + delta;
 
       if (newQty < 0) {
         setError('Adjustment would result in negative stock');
@@ -57,7 +60,7 @@ export default function StockAdjustmentPage() {
         return;
       }
 
-      await api.inventory.update(sku, { qty_on_hand: newQty });
+      await api.inventory.adjustStock(sku, delta);
       await loadData();
       setAdjustment('');
     } catch (error: any) {
@@ -119,7 +122,7 @@ export default function StockAdjustmentPage() {
     );
   }
 
-  const available = inventory.qty_on_hand - inventory.reserved_qty;
+  const available = (inventory.qty_on_hand ?? 0) - (inventory.reserved_qty ?? 0);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
@@ -146,13 +149,13 @@ export default function StockAdjustmentPage() {
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">On Hand</p>
               <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                {formatNumber(inventory.qty_on_hand)}
+                {formatNumber(inventory.qty_on_hand ?? 0)}
               </p>
             </div>
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Reserved</p>
               <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">
-                {formatNumber(inventory.reserved_qty)}
+                {formatNumber(inventory.reserved_qty ?? 0)}
               </p>
             </div>
             <div>

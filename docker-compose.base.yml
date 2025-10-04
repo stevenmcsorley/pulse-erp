@@ -138,6 +138,7 @@ services:
     image: prom/prometheus:latest
     container_name: pulse-prometheus
     restart: unless-stopped
+    user: root
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
@@ -164,6 +165,7 @@ services:
     image: grafana/grafana:latest
     container_name: pulse-grafana
     restart: unless-stopped
+    user: root
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}

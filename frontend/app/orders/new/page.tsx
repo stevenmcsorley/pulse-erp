@@ -77,6 +77,8 @@ export default function NewOrderPage() {
 
     if (!customerId.trim()) {
       newErrors.customer_id = 'Customer ID is required';
+    } else if (!/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(customerId)) {
+      newErrors.customer_id = 'Customer ID must be a valid UUID format';
     }
 
     if (items.length === 0 || items.every(item => !item.sku)) {
@@ -153,7 +155,7 @@ export default function NewOrderPage() {
               className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
                 errors.customer_id ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
               }`}
-              placeholder="e.g., CUST-001"
+              placeholder="e.g., a1b2c3d4-e5f6-7890-1234-567890abcdef"
             />
             {errors.customer_id && (
               <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.customer_id}</p>

@@ -1,18 +1,36 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8011';
+const ORDERS_API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8011'; // Orders
+const INVENTORY_API_URL = process.env.NEXT_PUBLIC_INVENTORY_API_URL || 'http://localhost:8012';
+const BILLING_API_URL = process.env.NEXT_PUBLIC_BILLING_API_URL || 'http://localhost:8013';
 const OLAP_API_URL = process.env.NEXT_PUBLIC_OLAP_API_URL || 'http://localhost:8014';
+console.log('INVENTORY_API_URL:', INVENTORY_API_URL);
+console.log('INVENTORY_API_URL:', INVENTORY_API_URL);
 
-// OLTP API Client (Orders, Inventory, Billing)
-export const apiClient: AxiosInstance = axios.create({
-  baseURL: API_BASE_URL,
+export const ordersClient: AxiosInstance = axios.create({
+  baseURL: ORDERS_API_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// OLAP API Client (Analytics, Reports)
+export const inventoryClient: AxiosInstance = axios.create({
+  baseURL: INVENTORY_API_URL,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+export const billingClient: AxiosInstance = axios.create({
+  baseURL: BILLING_API_URL,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
 export const olapClient: AxiosInstance = axios.create({
   baseURL: OLAP_API_URL,
   timeout: 10000,
@@ -22,7 +40,7 @@ export const olapClient: AxiosInstance = axios.create({
 });
 
 // Request interceptor for authentication (when implemented)
-apiClient.interceptors.request.use(
+ordersClient.interceptors.request.use(
   (config) => {
     // Add auth token when available
     // const token = localStorage.getItem('token');
@@ -37,7 +55,7 @@ apiClient.interceptors.request.use(
 );
 
 // Response interceptor for error handling
-apiClient.interceptors.response.use(
+ordersClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
@@ -48,7 +66,25 @@ apiClient.interceptors.response.use(
   }
 );
 
-// Same interceptors for OLAP client
+// Same interceptors for other clients (if needed, or apply to each individually)
+inventoryClient.interceptors.request.use(
+  (config) => config,
+  (error) => Promise.reject(error)
+);
+inventoryClient.interceptors.response.use(
+  (response) => response,
+  (error) => Promise.reject(error)
+);
+
+billingClient.interceptors.request.use(
+  (config) => config,
+  (error) => Promise.reject(error)
+);
+billingClient.interceptors.response.use(
+  (response) => response,
+  (error) => Promise.reject(error)
+);
+
 olapClient.interceptors.request.use(
   (config) => config,
   (error) => Promise.reject(error)
@@ -63,39 +99,40 @@ olapClient.interceptors.response.use(
 export const api = {
   // Orders
   orders: {
-    list: () => apiClient.get('/orders'),
-    get: (id: string) => apiClient.get(`/orders/${id}`),
-    create: (data: any) => apiClient.post('/orders', data),
-    update: (id: string, data: any) => apiClient.patch(`/orders/${id}`, data),
+    list: () => ordersClient.get('/orders'),
+    get: (id: string) => ordersClient.get(`/orders/${id}`),
+    create: (data: any) => ordersClient.post('/orders', data),
+    update: (id: string, data: any) => ordersClient.patch(`/orders/${id}`, data),
   },
 
   // Products (using inventory API)
   products: {
-    list: () => apiClient.get('/inventory'),
-    get: (sku: string) => apiClient.get(`/inventory/${sku}`),
-    create: (data: any) => apiClient.post('/inventory', data),
-    update: (sku: string, data: any) => apiClient.put(`/inventory/${sku}`, data),
+    list: () => inventoryClient.get('/inventory'),
+    get: (sku: string) => inventoryClient.get(`/inventory/${sku}`),
+    create: (data: any) => inventoryClient.post('/inventory', data),
+    update: (sku: string, data: any) => inventoryClient.put(`/inventory/${sku}`, data),
   },
 
   // Inventory
   inventory: {
-    list: () => apiClient.get('/inventory'),
-    listProducts: () => apiClient.get('/inventory'),
-    get: (sku: string) => apiClient.get(`/inventory/${sku}`),
-    getProduct: (sku: string) => apiClient.get(`/inventory/${sku}`),
-    createProduct: (data: any) => apiClient.post('/inventory', data),
-    update: (sku: string, data: any) => apiClient.put(`/inventory/${sku}`, data),
-    updateProduct: (sku: string, data: any) => apiClient.put(`/inventory/${sku}`, data),
-    reserve: (sku: string, data: any) => apiClient.post(`/inventory/${sku}/reserve`, data),
+    list: () => inventoryClient.get('/inventory'),
+    listProducts: () => inventoryClient.get('/inventory'),
+    get: (sku: string) => inventoryClient.get(`/inventory/${sku}`),
+    getProduct: (sku: string) => inventoryClient.get(`/inventory/${sku}`),
+    createProduct: (data: any) => inventoryClient.post('/inventory', data),
+    update: (sku: string, data: any) => inventoryClient.put(`/inventory/${sku}`, data),
+    updateProduct: (sku: string, data: any) => inventoryClient.put(`/inventory/${sku}`, data),
+    adjustStock: (sku: string, adjustment: number) => inventoryClient.patch(`/inventory/${sku}/adjust-stock`, { adjustment }),
+    reserve: (sku: string, data: any) => inventoryClient.post(`/inventory/${sku}/reserve`, data),
   },
 
   // Billing/Invoices
   billing: {
-    listInvoices: () => apiClient.get('/billing/invoices'),
-    getInvoice: (id: string) => apiClient.get(`/billing/invoices/${id}`),
-    createInvoice: (data: any) => apiClient.post('/billing/invoices', data),
-    payInvoice: (id: string) => apiClient.post(`/billing/invoices/${id}/pay`),
-    markAsPaid: (id: string) => apiClient.post(`/billing/invoices/${id}/pay`),
+    listInvoices: () => billingClient.get('/billing/invoices'),
+    getInvoice: (id: string) => billingClient.get(`/billing/invoices/${id}`),
+    createInvoice: (data: any) => billingClient.post('/billing/invoices', data),
+    payInvoice: (id: string) => billingClient.post(`/billing/invoices/${id}/pay`),
+    markAsPaid: (id: string) => billingClient.post(`/billing/invoices/${id}/pay`),
   },
 };
 
@@ -126,4 +163,4 @@ export const olapApi = {
   },
 };
 
-export default apiClient;
+export default ordersClient;

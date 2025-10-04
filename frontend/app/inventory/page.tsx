@@ -24,19 +24,24 @@ export default function InventoryPage() {
 
   const loadData = async () => {
     try {
-      const [inventoryRes, productsRes] = await Promise.all([
-        api.inventory.list(),
-        api.inventory.listProducts(),
+      const [productsRes] = await Promise.all([
+        api.inventory.list(), // This returns List<ProductResponse>
       ]);
 
-      const productsData = productsRes.data;
-      const inventoryData = inventoryRes.data.map((item: InventoryItem) => ({
-        ...item,
-        product: productsData.find((p: Product) => p.sku === item.sku),
-      }));
+      const productsWithInventory = productsRes.data; // This is List<ProductResponse>
 
-      setProducts(productsData);
-      setInventory(inventoryData);
+      const inventoryItems: InventoryItemWithProduct[] = [];
+      productsWithInventory.forEach((product: Product) => {
+        if (product.inventory) {
+          inventoryItems.push({
+            ...product.inventory,
+            product: product, // Attach the full product object
+          });
+        }
+      });
+
+      setProducts(productsWithInventory); // Set products as well
+      setInventory(inventoryItems); // Set the correctly structured inventory
     } catch (error) {
       console.error('Failed to load inventory:', error);
       setError('Failed to load inventory');
@@ -46,7 +51,9 @@ export default function InventoryPage() {
   };
 
   const getAvailableQty = (item: InventoryItem) => {
-    return item.qty_on_hand - item.reserved_qty;
+    const onHand = item.qty_on_hand ?? 0;
+    const reserved = item.reserved_qty ?? 0;
+    return onHand - reserved;
   };
 
   const isLowStock = (item: InventoryItem) => {
@@ -212,10 +219,10 @@ export default function InventoryPage() {
                           {item.product ? formatCurrency(item.product.price) : '-'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 text-right">
-                          {formatNumber(item.qty_on_hand)}
+                          {formatNumber(item.qty_on_hand ?? 0)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400 text-right">
-                          {formatNumber(item.reserved_qty)}
+                          {formatNumber(item.reserved_qty ?? 0)}
                         </td>
                         <td className={`px-6 py-4 whitespace-nowrap text-sm text-right font-medium ${
                           lowStock
@@ -265,7 +272,7 @@ export default function InventoryPage() {
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
               <p className="text-sm text-gray-600 dark:text-gray-400">Total Units</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {formatNumber(filteredInventory.reduce((sum, item) => sum + item.qty_on_hand, 0))}
+                {formatNumber(filteredInventory.reduce((sum, item) => sum + (item.qty_on_hand ?? 0), 0))}
               </p>
             </div>
           </div>

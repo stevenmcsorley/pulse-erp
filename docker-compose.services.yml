@@ -51,6 +51,11 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.orders.rule=PathPrefix(`/orders`)"
       - "traefik.http.services.orders.loadbalancer.server.port=8001"
+      - "traefik.http.routers.orders.middlewares=cors-headers"
+      - "traefik.http.middlewares.cors-headers.headers.accesscontrolalloworiginlist=http://192.168.1.199:3001"
+      - "traefik.http.middlewares.cors-headers.headers.accesscontrolallowmethods=GET,POST,PUT,DELETE,OPTIONS"
+      - "traefik.http.middlewares.cors-headers.headers.accesscontrolallowheaders=*"
+      - "traefik.http.middlewares.cors-headers.headers.accesscontrolallowcredentials=true"
     networks:
       - pulse-network
 
@@ -157,8 +162,8 @@ services:
     build:
       context: ./services/olap-worker
       dockerfile: Dockerfile
-    container_name: pulse-olap-worker
     restart: unless-stopped
+    user: root
     environment:
       NATS_URL: nats://nats:4222
       NATS_STREAM: orders
