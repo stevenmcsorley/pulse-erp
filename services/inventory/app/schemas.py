@@ -1,6 +1,7 @@
 """Pydantic schemas for request/response validation"""
 from datetime import datetime
 from typing import Optional
+from uuid import UUID
 
 from pydantic import BaseModel, Field
 
@@ -19,11 +20,33 @@ class ProductCreate(BaseModel):
     metadata: Optional[dict] = Field(default_factory=dict, description="Optional metadata")
 
 
-class StockReservation(BaseModel):
+class StockReservationRequest(BaseModel):
     """Schema for reserving stock"""
 
-    sku: str = Field(..., min_length=1, max_length=64, description="Product SKU")
+    order_id: UUID = Field(..., description="Order ID requesting reservation")
     qty: int = Field(..., gt=0, description="Quantity to reserve (must be positive)")
+
+
+class StockReservationResponse(BaseModel):
+    """Schema for stock reservation response"""
+
+    sku: str
+    order_id: UUID
+    qty_reserved: int
+    qty_on_hand: int
+    reserved_qty: int
+    available_qty: int
+    message: str
+
+
+class StockReservedEvent(BaseModel):
+    """Schema for stock_reserved NATS event"""
+
+    event_type: str = "stock_reserved"
+    sku: str
+    order_id: UUID
+    qty: int
+    timestamp: datetime
 
 
 # Response schemas

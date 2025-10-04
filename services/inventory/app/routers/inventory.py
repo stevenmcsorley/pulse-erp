@@ -1,4 +1,5 @@
 """Inventory API endpoints"""
+from datetime import datetime
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -8,7 +9,15 @@ from sqlalchemy.orm import selectinload
 
 from app.database import get_db
 from app.models import Product, InventoryItem
-from app.schemas import ProductCreate, ProductResponse, InventoryItemResponse
+from app.nats_client import nats_client
+from app.schemas import (
+    ProductCreate,
+    ProductResponse,
+    InventoryItemResponse,
+    StockReservationRequest,
+    StockReservationResponse,
+    StockReservedEvent,
+)
 
 router = APIRouter()
 
@@ -160,3 +169,74 @@ async def create_product(
         }
 
     return response
+
+
+@router.post(
+    "/{sku}/reserve",
+    response_model=StockReservationResponse,
+    summary="Reserve stock for an order",
+)
+async def reserve_stock(
+    sku: str,
+    reservation: StockReservationRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Atomically reserve stock for an order.
+
+    - **sku**: Product SKU to reserve
+    - **order_id**: Order ID requesting reservation
+    - **qty**: Quantity to reserve
+
+    Returns reservation confirmation or 409 if insufficient stock.
+    Emits 'stock_reserved' event to NATS on success.
+    """
+    # Get inventory item with row-level lock
+    result = await db.execute(
+        select(InventoryItem).where(InventoryItem.sku == sku).with_for_update()
+    )
+    inventory = result.scalar_one_or_none()
+
+    if not inventory:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Product {sku} not found in inventory",
+        )
+
+    # Check if sufficient stock available
+    available = inventory.qty_on_hand - inventory.reserved_qty
+    if available < reservation.qty:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Insufficient stock for {sku}. Available: {available}, Requested: {reservation.qty}",
+        )
+
+    # Reserve stock atomically
+    inventory.reserved_qty += reservation.qty
+
+    await db.commit()
+    await db.refresh(inventory)
+
+    # Publish event to NATS
+    event = StockReservedEvent(
+        sku=sku,
+        order_id=reservation.order_id,
+        qty=reservation.qty,
+        timestamp=datetime.utcnow(),
+    )
+
+    try:
+        await nats_client.publish("stock_reserved", event.model_dump(mode="json"))
+    except Exception as e:
+        print(f"Failed to publish stock_reserved event: {e}")
+
+    # Build response
+    return StockReservationResponse(
+        sku=sku,
+        order_id=reservation.order_id,
+        qty_reserved=reservation.qty,
+        qty_on_hand=inventory.qty_on_hand,
+        reserved_qty=inventory.reserved_qty,
+        available_qty=inventory.qty_on_hand - inventory.reserved_qty,
+        message=f"Successfully reserved {reservation.qty} units of {sku}",
+    )
