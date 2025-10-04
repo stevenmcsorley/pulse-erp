@@ -1,0 +1,72 @@
+version: '3.9'
+
+#
+# Pulse ERP - Complete Stack with Frontend
+# Extends docker-compose.services.yml
+#
+# Adds: Frontend UI
+# Target: Raspberry Pi 5 (arm64)
+#
+
+services:
+  # ============================================
+  # Frontend - Next.js UI
+  # ============================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      platforms:
+        - linux/arm64
+    container_name: pulse-frontend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      # API endpoints (internal container names)
+      API_BASE_URL: http://orders:8001
+      OLAP_API_URL: http://olap-worker:8004
+      GRAFANA_URL: http://grafana:3000
+      # Public URLs for client-side (via Traefik)
+      NEXT_PUBLIC_API_BASE_URL: https://api.${DOMAIN:-localhost}
+      NEXT_PUBLIC_OLAP_API_URL: https://api.${DOMAIN:-localhost}/olap
+      NEXT_PUBLIC_GRAFANA_URL: https://grafana.${DOMAIN:-localhost}
+    ports:
+      - "3001:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3000/', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      orders:
+        condition: service_healthy
+      inventory:
+        condition: service_healthy
+      billing:
+        condition: service_healthy
+      olap-worker:
+        condition: service_healthy
+      grafana:
+        condition: service_started
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`app.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls=true"
+      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+    networks:
+      - pulse-network
+
+# ============================================
+# Networks (extends services)
+# ============================================
+networks:
+  pulse-network:
+    external: true
