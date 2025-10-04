@@ -1,0 +1,49 @@
+version: '3.9'
+
+#
+# Pulse ERP - BI Stack
+# Business Intelligence & Analytics Layer
+#
+# This compose file extends base.yml and services.yml
+# to add BI-specific configurations
+#
+# Usage:
+#   docker compose -f docker-compose.base.yml -f docker-compose.services.yml -f docker-compose.bi.yml up -d
+#
+# Services: OLAP Worker, Grafana (with plugins), DuckDB persistence
+# Target: Raspberry Pi 5 (arm64)
+#
+
+services:
+  # ============================================
+  # Grafana (Override with BI plugins)
+  # ============================================
+  grafana:
+    environment:
+      # Install JSON API datasource plugin for OLAP queries
+      GF_INSTALL_PLUGINS: "marcusolsson-json-datasource"
+    volumes:
+      # Add dashboard provisioning
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      # Dashboard JSON files
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+    labels:
+      - "com.pulse.erp.component=bi"
+      - "com.pulse.erp.description=BI dashboards and analytics"
+
+  # ============================================
+  # OLAP Worker (Already in services.yml, add labels)
+  # ============================================
+  olap-worker:
+    labels:
+      - "com.pulse.erp.component=bi"
+      - "com.pulse.erp.description=DuckDB analytics worker"
+    # Ensure DuckDB data persists to SSD
+    volumes:
+      - ${DATA_PATH:-./data}/duckdb:/data
+
+# ============================================
+# Volumes (additional for BI)
+# ============================================
+# Note: Removed 'olap-data' from services.yml since we're
+# using bind mount to SSD via DATA_PATH
