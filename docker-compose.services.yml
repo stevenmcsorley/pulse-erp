@@ -145,6 +145,54 @@ services:
     networks:
       - pulse-network
 
+  # ============================================
+  # OLAP Worker
+  # ============================================
+  olap-worker:
+    build:
+      context: ./services/olap-worker
+      dockerfile: Dockerfile
+    container_name: pulse-olap-worker
+    restart: unless-stopped
+    environment:
+      NATS_URL: nats://nats:4222
+      NATS_STREAM: orders
+      DUCKDB_PATH: /data/pulse_olap.duckdb
+      SERVICE_NAME: olap-worker
+      SERVICE_PORT: 8004
+    ports:
+      - "8004:8004"
+    volumes:
+      - olap-data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8004/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      nats:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.olap.rule=Host(`api.${DOMAIN:-local}`) && PathPrefix(`/olap`)"
+      - "traefik.http.services.olap.loadbalancer.server.port=8004"
+    networks:
+      - pulse-network
+
+# ============================================
+# Volumes
+# ============================================
+volumes:
+  olap-data:
+    driver: local
+
 # ============================================
 # Networks (extends base)
 # ============================================
