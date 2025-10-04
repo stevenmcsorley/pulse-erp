@@ -100,26 +100,50 @@ services:
       - pulse-network
 
   # ============================================
-  # Billing Service (Placeholder)
+  # Billing Service
   # ============================================
-  # billing:
-  #   build:
-  #     context: ./services/billing
-  #     dockerfile: Dockerfile
-  #   container_name: pulse-billing
-  #   restart: unless-stopped
-  #   environment:
-  #     DB_HOST: postgres
-  #     NATS_URL: nats://nats:4222
-  #     MINIO_ENDPOINT: minio:9000
-  #   ports:
-  #     - "8003:8003"
-  #   depends_on:
-  #     - postgres
-  #     - nats
-  #     - minio
-  #   networks:
-  #     - pulse-network
+  billing:
+    build:
+      context: ./services/billing
+      dockerfile: Dockerfile
+    container_name: pulse-billing
+    restart: unless-stopped
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-pulse_erp}
+      POSTGRES_USER: ${POSTGRES_USER:-pulseadmin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      NATS_URL: nats://nats:4222
+      NATS_STREAM: orders
+      SERVICE_NAME: billing-service
+      SERVICE_PORT: 8003
+      DEFAULT_PAYMENT_TERMS_DAYS: 30
+    ports:
+      - "8003:8003"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8003/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.billing.rule=Host(`api.${DOMAIN:-local}`) && PathPrefix(`/billing`)"
+      - "traefik.http.services.billing.loadbalancer.server.port=8003"
+    networks:
+      - pulse-network
 
 # ============================================
 # Networks (extends base)

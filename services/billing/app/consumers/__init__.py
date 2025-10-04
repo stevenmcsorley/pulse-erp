@@ -1,0 +1,1 @@
+"""NATS event consumers package"""
