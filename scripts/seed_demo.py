@@ -18,6 +18,7 @@ import time
 from datetime import datetime, timedelta
 from typing import List, Dict, Any
 import random
+import uuid
 
 # API Configuration
 API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8001")
@@ -25,9 +26,9 @@ INVENTORY_API_URL = os.getenv("INVENTORY_API_URL", "http://localhost:8002")
 
 # Demo Data
 CUSTOMERS = [
-    "ACME-CORP",
-    "TECHSTART-INC",
-    "RETAIL-PLUS",
+    {"name": "ACME-CORP", "id": str(uuid.uuid4())},
+    {"name": "TECHSTART-INC", "id": str(uuid.uuid4())},
+    {"name": "RETAIL-PLUS", "id": str(uuid.uuid4())},
 ]
 
 PRODUCTS = [
@@ -91,11 +92,12 @@ class SeedDataGenerator:
             # Create product
             try:
                 response = requests.post(
-                    f"{INVENTORY_API_URL}/products",
+                    f"{INVENTORY_API_URL}/inventory",
                     json={
                         "sku": product["sku"],
                         "name": product["name"],
                         "price": product["price"],
+                        "qty_on_hand": product["initial_stock"],
                     },
                     timeout=10,
                 )
@@ -113,21 +115,6 @@ class SeedDataGenerator:
                 self.log(f"  ✗ Error creating product {product['sku']}: {e}")
                 continue
 
-            # Set initial inventory
-            try:
-                response = requests.put(
-                    f"{INVENTORY_API_URL}/inventory/{product['sku']}",
-                    json={"qty_on_hand": product["initial_stock"]},
-                    timeout=10,
-                )
-
-                if response.status_code in [200, 201]:
-                    self.log(f"    → Set stock: {product['initial_stock']} units")
-                else:
-                    self.log(f"    ✗ Failed to set stock: {response.status_code}")
-            except Exception as e:
-                self.log(f"    ✗ Error setting stock: {e}")
-
         self.log(f"Products created: {len(self.created_products)}/{len(PRODUCTS)}")
 
     def create_orders(self, num_orders: int = 10):
@@ -140,7 +127,7 @@ class SeedDataGenerator:
 
         for i in range(num_orders):
             # Random customer
-            customer_id = random.choice(CUSTOMERS)
+            customer = random.choice(CUSTOMERS)
 
             # Random order template
             template = random.choice(ORDER_TEMPLATES)
@@ -148,7 +135,7 @@ class SeedDataGenerator:
             # Get current prices from products
             items = []
             for item_template in template:
-                product = next((p for p in PRODUCTS if p["sku"] == item_template["sku"]), None)
+                product = next((p for p in PRODUCTS if p["sku"] == item_template["sku"] ), None)
                 if product:
                     items.append({
                         "sku": item_template["sku"],
@@ -164,7 +151,7 @@ class SeedDataGenerator:
                 response = requests.post(
                     f"{API_BASE_URL}/orders",
                     json={
-                        "customer_id": customer_id,
+                        "customer_id": customer["id"],
                         "items": items,
                     },
                     timeout=10,
@@ -208,7 +195,7 @@ class SeedDataGenerator:
 
         # Check products
         try:
-            response = requests.get(f"{INVENTORY_API_URL}/products", timeout=10)
+            response = requests.get(f"{INVENTORY_API_URL}/inventory", timeout=10)
             if response.status_code == 200:
                 products = response.json()
                 self.log(f"  ✓ Products in system: {len(products)}")

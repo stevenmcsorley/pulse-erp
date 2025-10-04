@@ -19,10 +19,10 @@ services:
       platforms:
         - linux/arm64
       args:
-        NEXT_PUBLIC_API_BASE_URL: http://${PI_IP:-192.168.1.199}:8011
-        NEXT_PUBLIC_INVENTORY_API_URL: http://${PI_IP:-192.168.1.199}:8012
-        NEXT_PUBLIC_BILLING_API_URL: http://${PI_IP:-192.168.1.199}:8013
-        NEXT_PUBLIC_OLAP_API_URL: http://${PI_IP:-192.168.1.199}:8014
+        NEXT_PUBLIC_API_BASE_URL: http://${PI_IP:-192.168.1.199}
+        NEXT_PUBLIC_INVENTORY_API_URL: http://${PI_IP:-192.168.1.199}
+        NEXT_PUBLIC_BILLING_API_URL: http://${PI_IP:-192.168.1.199}
+        NEXT_PUBLIC_OLAP_API_URL: http://${PI_IP:-192.168.1.199}
     container_name: pulse-frontend
     restart: unless-stopped
     environment:

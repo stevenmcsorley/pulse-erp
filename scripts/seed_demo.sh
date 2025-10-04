@@ -18,15 +18,15 @@ echo ""
 # Check if services are running
 echo "Checking services..."
 
-if ! curl -s http://localhost:8001/health > /dev/null 2>&1; then
-    echo "ERROR: Orders service not reachable at http://localhost:8001"
+if ! curl -s http://localhost/orders/health > /dev/null 2>&1; then
+    echo "ERROR: Orders service not reachable at http://localhost/orders/health"
     echo "Please ensure services are running:"
     echo "  docker-compose -f docker-compose.base.yml -f docker-compose.services.yml up -d"
     exit 1
 fi
 
-if ! curl -s http://localhost:8002/health > /dev/null 2>&1; then
-    echo "ERROR: Inventory service not reachable at http://localhost:8002"
+if ! curl -s http://localhost/inventory/health > /dev/null 2>&1; then
+    echo "ERROR: Inventory service not reachable at http://localhost/inventory/health"
     echo "Please ensure services are running"
     exit 1
 fi
@@ -56,7 +56,7 @@ fi
 echo "Running seed data script..."
 echo ""
 
-export API_BASE_URL=${API_BASE_URL:-http://localhost:8001}
-export INVENTORY_API_URL=${INVENTORY_API_URL:-http://localhost:8002}
+export API_BASE_URL=${API_BASE_URL:-http://localhost}
+export INVENTORY_API_URL=${INVENTORY_API_URL:-http://localhost}
 
 python3 "$SCRIPT_DIR/seed_demo.py" "$@"

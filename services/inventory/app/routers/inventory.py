@@ -50,7 +50,7 @@ async def get_inventory(
             "price": float(product.price),
             "created_at": product.created_at,
             "updated_at": product.updated_at,
-            "metadata": product.metadata,
+            "metadata": product.product_metadata,
         }
 
         if product.inventory_item:
@@ -103,7 +103,7 @@ async def create_product(
         existing_product.name = product_data.name
         existing_product.description = product_data.description
         existing_product.price = product_data.price
-        existing_product.metadata = product_data.metadata
+        existing_product.product_metadata = product_data.metadata
 
         # Update inventory if exists
         if existing_product.inventory_item:
@@ -128,7 +128,7 @@ async def create_product(
             name=product_data.name,
             description=product_data.description,
             price=product_data.price,
-            metadata=product_data.metadata,
+            product_metadata=product_data.metadata,
         )
         db.add(new_product)
 
@@ -154,7 +154,7 @@ async def create_product(
         "price": float(product.price),
         "created_at": product.created_at,
         "updated_at": product.updated_at,
-        "metadata": product.metadata,
+        "metadata": product.product_metadata,
     }
 
     if product.inventory_item:

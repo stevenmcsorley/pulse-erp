@@ -49,7 +49,7 @@ services:
           memory: 256M
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.orders.rule=Host(`api.${DOMAIN:-local}`) && PathPrefix(`/orders`)"
+      - "traefik.http.routers.orders.rule=PathPrefix(`/orders`)"
       - "traefik.http.services.orders.loadbalancer.server.port=8001"
     networks:
       - pulse-network
@@ -94,8 +94,13 @@ services:
           memory: 256M
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.inventory.rule=Host(`api.${DOMAIN:-local}`) && PathPrefix(`/inventory`)"
+      - "traefik.http.routers.inventory.rule=PathPrefix(`/inventory`)"
       - "traefik.http.services.inventory.loadbalancer.server.port=8002"
+      - "traefik.http.routers.inventory.middlewares=cors-headers"
+      - "traefik.http.middlewares.cors-headers.headers.accesscontrolalloworiginlist=http://192.168.1.199:3001"
+      - "traefik.http.middlewares.cors-headers.headers.accesscontrolallowmethods=GET,POST,PUT,DELETE,OPTIONS"
+      - "traefik.http.middlewares.cors-headers.headers.accesscontrolallowheaders=*"
+      - "traefik.http.middlewares.cors-headers.headers.accesscontrolallowcredentials=true"
     networks:
       - pulse-network
 
@@ -140,7 +145,7 @@ services:
           memory: 256M
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.billing.rule=Host(`api.${DOMAIN:-local}`) && PathPrefix(`/billing`)"
+      - "traefik.http.routers.billing.rule=PathPrefix(`/billing`)"
       - "traefik.http.services.billing.loadbalancer.server.port=8003"
     networks:
       - pulse-network
@@ -181,7 +186,7 @@ services:
           memory: 512M
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.olap.rule=Host(`api.${DOMAIN:-local}`) && PathPrefix(`/olap`)"
+      - "traefik.http.routers.olap.rule=PathPrefix(`/olap`)"
       - "traefik.http.services.olap.loadbalancer.server.port=8004"
     networks:
       - pulse-network
