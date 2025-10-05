@@ -6,6 +6,7 @@ const BILLING_API_URL = process.env.NEXT_PUBLIC_BILLING_API_URL || 'http://local
 const OLAP_API_URL = process.env.NEXT_PUBLIC_OLAP_API_URL || 'http://localhost:8014';
 console.log('INVENTORY_API_URL:', INVENTORY_API_URL);
 console.log('INVENTORY_API_URL:', INVENTORY_API_URL);
+console.log('INVENTORY_API_URL:', INVENTORY_API_URL);
 
 export const ordersClient: AxiosInstance = axios.create({
   baseURL: ORDERS_API_URL,

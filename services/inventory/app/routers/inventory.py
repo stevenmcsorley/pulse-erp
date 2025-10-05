@@ -2,7 +2,7 @@
 from datetime import datetime
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Body, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -79,6 +79,7 @@ async def get_inventory(
 )
 async def create_product(
     product_data: ProductCreate,
+    inventory_data: schemas.InventoryItemCreate,
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -107,16 +108,16 @@ async def create_product(
 
         # Update inventory if exists
         if existing_product.inventory_item:
-            existing_product.inventory_item.qty_on_hand = product_data.qty_on_hand
-            existing_product.inventory_item.reserved_qty = product_data.reserved_qty
-            existing_product.inventory_item.reorder_point = product_data.reorder_point
+            existing_product.inventory_item.qty_on_hand = inventory_data.qty_on_hand
+            existing_product.inventory_item.reserved_qty = inventory_data.reserved_qty
+            existing_product.inventory_item.reorder_point = inventory_data.reorder_point
         else:
             # Create inventory item for existing product
             new_inventory = InventoryItem(
                 sku=product_data.sku,
-                qty_on_hand=product_data.qty_on_hand,
-                reserved_qty=product_data.reserved_qty,
-                reorder_point=product_data.reorder_point,
+                qty_on_hand=inventory_data.qty_on_hand,
+                reserved_qty=inventory_data.reserved_qty,
+                reorder_point=inventory_data.reorder_point,
             )
             db.add(new_inventory)
 
@@ -135,9 +136,9 @@ async def create_product(
         # Create inventory item
         new_inventory = InventoryItem(
             sku=product_data.sku,
-            qty_on_hand=product_data.qty_on_hand,
-            reserved_qty=product_data.reserved_qty,
-            reorder_point=product_data.reorder_point,
+            qty_on_hand=inventory_data.qty_on_hand,
+            reserved_qty=inventory_data.reserved_qty,
+            reorder_point=inventory_data.reorder_point,
         )
         db.add(new_inventory)
 
@@ -344,7 +345,15 @@ async def adjust_stock(
     await db.commit()
     await db.refresh(inventory)
 
-    return inventory
+    # Return InventoryItemResponse with calculated available_qty
+    return InventoryItemResponse(
+        sku=inventory.sku,
+        qty_on_hand=inventory.qty_on_hand,
+        reserved_qty=inventory.reserved_qty,
+        reorder_point=inventory.reorder_point,
+        available_qty=inventory.qty_on_hand - inventory.reserved_qty, # Calculate available_qty
+        updated_at=inventory.updated_at,
+    )
 
 
 @router.post(
@@ -415,4 +424,59 @@ async def reserve_stock(
         reserved_qty=inventory.reserved_qty,
         available_qty=inventory.qty_on_hand - inventory.reserved_qty,
         message=f"Successfully reserved {reservation.qty} units of {sku}",
+    )
+
+
+@router.post(
+    "/{sku}/release",
+    response_model=schemas.InventoryItemResponse,
+    summary="Release reserved stock for an order",
+)
+async def release_item(
+    sku: str,
+    release: schemas.InventoryRelease,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Release reserved stock for an order.
+
+    - **sku**: Product SKU to release
+    - **order_id**: Order ID releasing reservation
+    - **qty**: Quantity to release
+
+    Returns the updated inventory item or 404 if not found.
+    """
+    result = await db.execute(
+        select(InventoryItem).where(InventoryItem.sku == sku).with_for_update()
+    )
+    inventory = result.scalar_one_or_none()
+
+    if not inventory:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Inventory item not found")
+    
+    if inventory.reserved_qty < release.quantity:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not enough reserved items to release")
+    
+    inventory.reserved_qty -= release.quantity
+    await db.commit()
+    await db.refresh(inventory)
+
+    # Fetch product details to include in the response
+    result = await db.execute(
+        select(Product).where(Product.sku == sku)
+    )
+    product = result.scalar_one_or_none()
+    if not product:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found for this inventory item")
+
+    return schemas.InventoryItemResponse(
+        sku=inventory.sku,
+        qty_on_hand=inventory.qty_on_hand,
+        reserved_qty=inventory.reserved_qty,
+        reorder_point=inventory.reorder_point,
+        product_name=product.name,
+        product_description=product.description,
+        product_price=product.price,
+        available_qty=inventory.qty_on_hand - inventory.reserved_qty,
+        updated_at=inventory.updated_at,
     )
